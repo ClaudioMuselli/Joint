@@ -43,7 +43,7 @@ class Joint{
     
     
     GammaAP AP;
-    std::complex<long double> **U=NULL, **V1=NULL, **V2=NULL;
+    std::complex<long double> **ULL=NULL,**UNLL=NULL,**UNNLL=NULL, **V1=NULL;
     
     //Higgs Cross section
     //Coefficients anomalous dimensions
