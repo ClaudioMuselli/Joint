@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include "AP.h"
+#include "../math/MellinFunc.h"
 
 using namespace std;
 
@@ -19,6 +20,12 @@ class Joint{
     
     std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b);
     std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b);
+    
+    //Hard part
+    std::complex<long double> Hgggq1(std::complex<long double> N);
+    std::complex<long double> Hgggq2(std::complex<long double> N);
+    std::complex<long double> Hggggreg2(std::complex<long double> N);
+    std::complex<long double> Hggqq2(std::complex<long double> N);
     
   private:
     int _ordres,_ordmatch;
@@ -57,11 +64,7 @@ class Joint{
     
     //Sudakov
     std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> b);
-    //Hard part
-    std::complex<long double> Hgggq1(std::complex<long double> N);
-    std::complex<long double> Hgggq2(std::complex<long double> N);
-    std::complex<long double> Hgggg2(std::complex<long double> N);
-    std::complex<long double> Hggqq2(std::complex<long double> N);
+    
     //Evolution
     void ComputeEvolution(std::complex<long double> N);
     

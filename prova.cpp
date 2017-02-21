@@ -3,6 +3,7 @@
 #include <complex>
 #include "math/MellinFunc.h"
 #include "src/AP.h"
+#include <Joint.h>
 
 
 using namespace std;
@@ -113,6 +114,11 @@ int main(){
   long double theta=std::arg(NTest*NTest/NTest2);
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
   std::complex<long double> risdilog(redilog.val, imdilog.val);
+  cout << risdilog << endl;
+  cout << endl;
+  
+  Joint J(2,2,"ALL",true);
+  cout << J.Hgggq1(NTest) << " " << J.Hggggreg2(NTest) << " " << J.Hgggq2(NTest)<< endl;
   
   
   
