@@ -1,18 +1,13 @@
 CUBA_ROOT := /usr/local/lib
 
-ROOTCONFIG   := root-config
-
-ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --libs)
-
 LHAPDFCONFIG   := lhapdf-config
 
 LHAPDFCFLAGS   := $(shell $(LHAPDFCONFIG) --cflags)
 LHAPDFLIBS     := $(shell $(LHAPDFCONFIG) --libs)
 
 
-MYLIBS := -L./lib -L/usr/local -lJoint
-MYFLAGS := -I./src -I./math
+MYLIBS := -L./lib -L/usr/local -lJoint -fPIC
+MYFLAGS := -I./src -I./math -fPIC
 
 #LOOPTOOLSLIBS := -L/usr/local/lib -looptools -lgfortran -lm
 
@@ -24,7 +19,7 @@ CUBALIBS := -L$(CUBA_ROOT) -lcuba -lm
 
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard ./src/*.cpp ./math/*.cpp ))
 
-CXX := g++
+CXX := g++ -fPIC
 
 OPTIM := -O3
 
