@@ -9,7 +9,7 @@ using namespace std;
 
 int main(){
   std::complex<long double> NTest(2.,1.);
-  std::complex<long double> NTest2(5.3,3.8);
+  std::complex<long double> NTest2(5.,3.);
   cout.precision(10.);
   MellinFunc Fun;
 
@@ -104,6 +104,15 @@ int main(){
   cout << "WW2= " << AP.WW2 << endl;
   cout << "TT2= " << AP.TT2 << endl;
   cout << "VV2= " << AP.VV2 << endl;
+  
+  cout << endl;
+  
+  cout << "Prova DILOG" << endl;
+  gsl_sf_result redilog,imdilog;
+  long double r=std::abs(NTest*NTest/NTest2);
+  long double theta=std::arg(NTest*NTest/NTest2);
+  gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
+  std::complex<long double> risdilog(redilog.val, imdilog.val);
   
   
   

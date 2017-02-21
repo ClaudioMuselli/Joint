@@ -5,19 +5,16 @@
 #include <iostream>
 #include <cmath>
 #include <gsl/gsl_math.h>
-#include "../math/HSum.h"
 #include <vector>
 #include <string>
+#include <sstream>
+#include "AP.h"
 
 using namespace std;
 
-namespace Joint{
-  
-  
-  
-  class Joint{
+class Joint{
   public: 
-    Joint(const int ordres, const int ordmatch, string channel);
+    Joint(const int ordres, const int ordmatch, string channel, bool Wilson);
     virtual ~Joint();
     
     std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b);
@@ -33,21 +30,30 @@ namespace Joint{
     long double _Ca, _Cf;
     //Channels
     string _channel;
+    bool _Wilson;
+    
+    long double EulerGamma=0.577215664901532860606512090082;
     
     
-    
+    GammaAP AP;
     std::complex<long double> **U=NULL, **V1=NULL, **V2=NULL;
     
     //Higgs Cross section
     //Coefficients anomalous dimensions
-    const long double Apt1g;
-    const long double Apt2g;
-    const long double Apt3g;
-    const long double Bpt1g;
-    const long double Bpt2g;
-    const long double Dpt2g;
-    const long double Hpt1g;
-    const long double Hpt2g;
+    long double Apt1g;
+    long double Apt2g;
+    long double Apt3g;
+    long double Bpt1g;
+    long double Bpt2g;
+    long double Dpt2g;
+    long double Hpt1g;
+    long double Hpt2g;
+    
+    long double W1;
+    long double W2;
+    
+    //beta function
+    long double beta_0,beta_1,beta_2;
     
     //Sudakov
     std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> b);
@@ -59,14 +65,6 @@ namespace Joint{
     //Evolution
     void ComputeEvolution(std::complex<long double> N);
     
-  };
-  
-
-  
-  
-  
-
-
 };
 
 

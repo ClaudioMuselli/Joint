@@ -1,3 +1,7 @@
+#ifndef _AP_H_
+#define _AP_H_
+
+
 #include <gsl/gsl_math.h>
 #include <stdio.h>
 #include <iostream>
@@ -63,3 +67,7 @@ private:
   std::complex<long double> gammansval2(std::complex<long double> N);
   
 };
+
+
+
+#endif
