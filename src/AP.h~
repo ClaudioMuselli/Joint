@@ -1,0 +1,60 @@
+#include <gsl/gsl_math.h>
+#include <stdio.h>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include "../math/complex_def.h"
+
+using namespace std;
+
+struct gammasums1 {
+  std::complex<long double> S1, S2, S3, S4;
+  std::complex<long double> NS,NT,NFO,NFI,NSI,NSE,NE,NN;
+  std::complex<long double> NI,NI2,NI3,NMI, NMI2,N1I,N1I2,N1I3,N2I,N1,N2,NM,NMS,N1S,N1T,N2S,N2T;
+  std::complex<long double> N3,N4,N5,N6;
+  std::complex<long double> S11,S12,S13,S14,S15,S16,S1M,S21,S31,S2M;
+  std::complex<long double> SPMOM,SLC,SLV,SSCHLM,SSTR2M,SSTR3M,SSCHLP;
+  std::complex<long double> SSTR2P,SSTR3P;
+};
+
+
+class GammaAP{
+public:
+  GammaAP GammaAP(const double Nf,const double Nc);
+  ~GammaAP();
+  void ComputeGamma(std::complex<long double> N, int order);
+  extern std::complex<long double> gg0,SS0,Sg0,gS0,plus0,minus0;
+  extern std::complex<long double> gg1,SS1,Sg1,gS1,VV1,TT1,plus1,minus1;
+  extern std::complex<long double> gg2,SS2,Sg2,gS2,VV2,TT2,plus2,minus2;
+private:
+  double CA,CF;
+  double NF,NC;
+  double EulerGamma;
+  gammasums1 sums1;
+  //LO anomalous dimensions 
+  std::complex<long double> gammagg0(std::complex<long double> N);
+  std::complex<long double> gammaSS0(std::complex<long double> N);
+  std::complex<long double> gammaSg0(std::complex<long double> N);
+  std::complex<long double> gammagS0(std::complex<long double> N);
+  std::complex<long double> gammaplus0(std::complex<long double> N);
+  std::complex<long double> gammaminus0(std::complex<long double> N);
+  //NLO anomalous dimensions
+  std::complex<long double> gammagg1(std::complex<long double> N);
+  std::complex<long double> gammaSS1(std::complex<long double> N);
+  std::complex<long double> gammaSg1(std::complex<long double> N);
+  std::complex<long double> gammagS1(std::complex<long double> N);
+  std::complex<long double> gammaplus1(std::complex<long double> N);
+  std::complex<long double> gammaminus1(std::complex<long double> N);
+  std::complex<long double> gammaVV1(std::complex<long double> N);
+  std::complex<long double> gammaTT1(std::complex<long double> N);
+  //NNLO anomalous dimensions
+  std::complex<long double> gammagg2(std::complex<long double> N);
+  std::complex<long double> gammaSS2(std::complex<long double> N);
+  std::complex<long double> gammaSg2(std::complex<long double> N);
+  std::complex<long double> gammagS2(std::complex<long double> N);
+  std::complex<long double> gammaplus2(std::complex<long double> N);
+  std::complex<long double> gammaminus2(std::complex<long double> N);
+  std::complex<long double> gammaVV2(std::complex<long double> N);
+  std::complex<long double> gammaTT2(std::complex<long double> N);
+  
+};
