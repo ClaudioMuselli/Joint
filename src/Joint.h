@@ -15,18 +15,13 @@ using namespace std;
 
 class Joint{
   public: 
-    Joint(const int ordres, const int ordmatch, string channel, bool Wilson);
+    Joint(const int ordres, const int ordmatch, int channel, bool Wilson);
     virtual ~Joint();
     
     std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b);
     std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b);
     
-    //Hard part
-    std::complex<long double> Hgggq1(std::complex<long double> N);
-    std::complex<long double> Hgggq2(std::complex<long double> N);
-    std::complex<long double> Hggggreg2(std::complex<long double> N);
-    std::complex<long double> Hggqq2(std::complex<long double> N);
-    
+   
   private:
     int _ordres,_ordmatch;
     //Scale and alpha_s
@@ -36,7 +31,7 @@ class Joint{
     const long double _Nc=3., _Nf=5.;
     long double _Ca, _Cf;
     //Channels
-    string _channel;
+    int _channel;
     bool _Wilson;
     
     long double EulerGamma=0.577215664901532860606512090082;
@@ -62,12 +57,22 @@ class Joint{
     //beta function
     long double beta_0,beta_1,beta_2;
     
-    //Sudakov
+    
+    
+    //Hard part
+    std::complex<long double> Hgggq1(std::complex<long double> N);
+    std::complex<long double> Hgggq2(std::complex<long double> N);
+    std::complex<long double> Hggggreg2(std::complex<long double> N);
+    std::complex<long double> Hggqq2(std::complex<long double> N);
+    
+     //Sudakov
     std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> b);
     
     //Evolution
-    void ComputeEvolution(std::complex<long double> N);
+    void ComputeEvolution(std::complex<long double> N, std::complex<long double> b);
     
+    
+    long double Apt1q;
 };
 
 
