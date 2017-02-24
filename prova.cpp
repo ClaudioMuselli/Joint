@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <complex>
+#include <vector>
+#include <string>
 #include "math/MellinFunc.h"
 #include "src/AP.h"
 #include <Joint.h>
@@ -12,7 +14,7 @@ int main(){
   std::complex<long double> NTest(2.,1.);
   std::complex<long double> NTest2(5.,3.);
   cout.precision(10.);
-  MellinFunc Fun;
+  /*MellinFunc Fun;
 
   cout <<"D0 " << Fun.D0(NTest)<< endl;
   cout <<"D1 " << Fun.D1(NTest)<< endl;
@@ -115,12 +117,35 @@ int main(){
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
   std::complex<long double> risdilog(redilog.val, imdilog.val);
   cout << risdilog << endl;
+  cout << endl;*/
+  
+  Joint JLL(0,2,0,true);
+  Joint JNLL(1,2,0,true);
+  Joint JNNLL(2,2,0,true);
+  //cout << J.Hgggq1(NTest) << " " << J.Hggggreg2(NTest) << " " << J.Hgggq2(NTest)<< endl;
+  
+  cout<< endl;
+  std::complex<long double> b(3.,5.);
+  //cout << "Test Sudakov and evolution" << endl;
+  //J.ComputeEvolution(NTest,b);
+  cout << "TEST TOTAL" << endl;
+  std::vector<std::complex<long double> > resLL,resNLL,resNNLL;
+  resLL=JLL.ComputeJointRes(NTest,b);
+  resNLL=JNLL.ComputeJointRes(NTest,b);
+  resNNLL=JNNLL.ComputeJointRes(NTest,b);
+  string name[3]={"GG","GQ","QQ"};
+  for (int i=0;i<resLL.size();i++){
+    cout << name[i] << "= " << resLL[i] << endl; 
+  }
   cout << endl;
-  
-  Joint J(2,2,"ALL",true);
-  cout << J.Hgggq1(NTest) << " " << J.Hggggreg2(NTest) << " " << J.Hgggq2(NTest)<< endl;
-  
-  
+  for (int i=0;i<resNLL.size();i++){
+    cout << name[i] << "= " << resNLL[i] << endl; 
+  }
+  cout << endl;
+  for (int i=0;i<resNNLL.size();i++){
+    cout << name[i] << "= " << resNNLL[i] << endl; 
+  }
+  cout << endl;
   
   
   

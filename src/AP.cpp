@@ -105,15 +105,12 @@ void GammaAP::sums(std::complex<long double> N) {
 		0.6621 * (gsl_sf_zeta(2) - g1s.S14/ g1s.N4) / g1s.N4 -
 		0.3174 * (gsl_sf_zeta(2) - g1s.S15/ g1s.N5) / g1s.N5 +
 		0.0699 * (gsl_sf_zeta(2) - g1s.S16/ g1s.N6) / g1s.N6 );
-  cout << g1s.SPMOM << endl;
   //
   g1s.SLC = - 5./8. * gsl_sf_zeta(3);
   g1s.SLV = - gsl_sf_zeta(2)/2.* (HAP.HS(1,g1s.N1/2.-1.) - HAP.HS(1,N/2.-1.)) + g1s.S1/g1s.NS + g1s.SPMOM;
-  cout << g1s.SLV << endl;
   g1s.SSCHLM = g1s.SLC - g1s.SLV;
   g1s.SSTR2M = HAP.HS(2,g1s.N1/2.-1.);
   g1s.SSTR3M = HAP.HS(3,g1s.N1/2.-1.);
-  cout << g1s.SSTR2M << " " << g1s.SSTR3M << endl;
   //
   g1s.SSCHLP = g1s.SLC + g1s.SLV;
   g1s.SSTR2P = HAP.HS(2,g1s.N2/2.-1.);
@@ -124,7 +121,8 @@ void GammaAP::sums(std::complex<long double> N) {
 
 //LO anomalous dimensions
 std::complex<long double> GammaAP::gammagg0(std::complex<long double> N){
-  return -1./(4.*M_PIl)*(CA*(4.*(HAP.HS(1,N-2.)-2.*HAP.HS(1,N-1.)-2.*HAP.HS(1,N+1.)+HAP.HS(1,N+2.)+3.*HAP.HS(1,N))-11./3.)+2./3.*NF);
+  return (-1./(4.*M_PIl)*(CA*(4.*(HAP.HS(1,N-2.)-2.*HAP.HS(1,N-1.)-2.*HAP.HS(1,N+1.)+HAP.HS(1,N+2.)+3.*HAP.HS(1,N))-11./3.)+2./3.*NF));
+  
 }
 std::complex<long double> GammaAP::gammagS0(std::complex<long double> N){
   return -1./(4.*M_PIl)*(2.*CF*(2.*HAP.HS(1,N-2.)-4.*HAP.HS(1,N-1.)-HAP.HS(1,N+1.)+3.*HAP.HS(1,N)));
