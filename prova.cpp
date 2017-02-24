@@ -146,7 +146,23 @@ int main(){
     cout << name[i] << "= " << resNNLL[i] << endl; 
   }
   cout << endl;
-  
+  cout << "TEST MATCHING" << endl;
+  std::vector<std::complex<long double> > matchLL,matchNLL,matchNNLL;
+  matchLL=JLL.ComputeMatching(NTest,b);
+  matchNLL=JNLL.ComputeMatching(NTest,b);
+  matchNNLL=JNNLL.ComputeMatching(NTest,b);
+  for (int i=0;i<resLL.size();i++){
+    cout << name[i] << "= " << matchLL[i] << endl; 
+  }
+  cout << endl;
+  for (int i=0;i<resNLL.size();i++){
+    cout << name[i] << "= " << matchNLL[i] << endl; 
+  }
+  cout << endl;
+  for (int i=0;i<resNNLL.size();i++){
+    cout << name[i] << "= " << matchNNLL[i] << endl; 
+  }
+  cout << endl;
   
   
   

@@ -58,6 +58,15 @@ Joint::Joint(const int ordres, const int ordmatch, int channel, bool Wilson): AP
   V1[0]=new std::complex<long double>[2];
   V1[1]=new std::complex<long double>[2];
   
+  if (_ordres>2){
+    cout << "Resummation is implemented only up to NNLL! Set resummation order to NNLL" << endl;
+    _ordres=2;
+  }
+  if (_ordmatch>2){
+    cout << "Matching is implemented only up to NNLO! Set matching order to NNLO" << endl;
+    _ordmatch=2;
+  }
+  
 }
 
 Joint::~Joint(){
@@ -200,10 +209,10 @@ void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long doub
     ULL[1][1]=(std::exp(1./_as*lnEPLL));
   }
   if (_ordres >=1){
-    lnEPNLL=AP.plus0/beta_0*(std::log(1.-lchi))-Apt1g/2./beta_0/beta_0*lN*
-    (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF);
-    lnEMNLL=AP.minus0/beta_0*(std::log(1.-lchi))-Apt1q/2./beta_0/beta_0*lN*
-    (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF);
+    lnEPNLL=AP.plus0/beta_0*(std::log(1.-lchi)+_as*beta_0*_LF)-Apt1g/2./beta_0/beta_0*lN*
+    (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*_LR);
+    lnEMNLL=AP.minus0/beta_0*(std::log(1.-lchi)+_as*beta_0*_LF)-Apt1q/2./beta_0/beta_0*lN*
+    (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*_LR);
     UNLL[0][0]=(std::exp(lnEMNLL)*(AP.gg0-AP.SS0+rad)+std::exp(lnEPNLL)*(AP.SS0-AP.gg0+rad))/(2.*rad);
     UNLL[0][1]=(std::exp(lnEPNLL)-std::exp(lnEMNLL))*AP.Sg0/rad;
     UNLL[1][0]=(std::exp(lnEPNLL)-std::exp(lnEMNLL))*AP.gS0/rad;
@@ -222,16 +231,18 @@ void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long doub
 	    +(2.*AP.Sg0*AP.gS0+std::pow(AP.SS0-AP.gg0,2))*AP.gg1))/(beta_0*beta_0*(beta_0*beta_0-4.*AP.gS0*AP.Sg0-std::pow(AP.gg0-AP.SS0,2)));
   }
   if (_ordres >=2){
-    lnEPNNLL=AP.plus0/beta_0*(std::log(1.-lchi)+_as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF))
+    lnEPNNLL=AP.plus0/beta_0*(std::log(1.-lchi)+_as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF)
+    +_as*_as*(-0.5*beta_0*beta_0*_LR*_LR+0.5*beta_0*beta_0*std::pow(-_LF+_LR,2)+_LF*beta_1))
     -_as*Apt1g/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
     -beta_1*beta_1*std::pow(std::log(1.-lchi),2))/(2.*beta_0*beta_0*std::pow(1.-lchi,2))
     +_LR*(beta_1*(2.-lchi)*lchi-beta_1*std::log(1.-lchi))/std::pow(1.-lchi,2)+beta_0*beta_0*_LR*_LR*(-2.+lchi)*lchi/(2.*std::pow(1.-lchi,2))
-    -0.5*beta_0*beta_0*_LR*_LR+0.5*beta_0*beta_0*std::pow(-_LF+_LR,2)+_LF*beta_1);
-    lnEMNNLL=AP.minus0/beta_0*(std::log(1.-lchi)+_as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF))
+    );
+    lnEMNNLL=AP.minus0/beta_0*(std::log(1.-lchi)+_as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*_LR+beta_0*_LF)
+      +_as*_as*(-0.5*beta_0*beta_0*_LR*_LR+0.5*beta_0*beta_0*std::pow(-_LF+_LR,2)+_LF*beta_1))
     -_as*Apt1q/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
     -beta_1*beta_1*std::pow(std::log(1.-lchi),2))/(2.*beta_0*beta_0*std::pow(1.-lchi,2))
     +_LR*(beta_1*(2.-lchi)*lchi-beta_1*std::log(1.-lchi))/std::pow(1.-lchi,2)+beta_0*beta_0*_LR*_LR*(-2.+lchi)*lchi/(2.*std::pow(1.-lchi,2))
-    -0.5*beta_0*beta_0*_LR*_LR+0.5*beta_0*beta_0*std::pow(-_LF+_LR,2)+_LF*beta_1);
+    );
     UNNLL[0][0]=(std::exp(lnEMNNLL)*(AP.gg0-AP.SS0+rad)+std::exp(lnEPNNLL)*(AP.SS0-AP.gg0+rad))/(2.*rad);
     UNNLL[0][1]=(std::exp(lnEPNNLL)-std::exp(lnEMNNLL))*AP.Sg0/rad;
     UNNLL[1][0]=(std::exp(lnEPNNLL)-std::exp(lnEMNNLL))*AP.gS0/rad;
@@ -293,11 +304,11 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
     }
     case(2):{
       RggNLL=std::exp(1./2./beta_0/beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g)*lchi/(1.-lchi));
-      RggNNLL=std::exp(_as*(V1[1][1]*lchi/(1.-lchi)
+      RggNNLL=std::exp(_as*(V1[1][1]*(lchi/(1.-lchi)-_as*beta_0*_LF)
       -1./std::pow(beta_0,3)*(beta_1*beta_1/2./beta_0*Apt1g-beta_2*Apt1g/2.-beta_1*Apt2g/2.+beta_0*Apt3g/2.)*lN
       *(2.-lchi)*lchi/(2.*std::pow(1.-lchi,2))+1./2./beta_0*(Apt2g-beta_1/beta_0*Apt1g)*lN*lchi*(2.-lchi)/std::pow(1.-lchi,2)*_LR
       -beta_1*(1./2./beta_0/beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g))/beta_0*std::log(1.-lchi)/std::pow(1.-lchi,2)
-      -1./2./beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g)*_LF-1./4.*Dpt2g/beta_0*lN));
+      -1./4.*Dpt2g/beta_0*lN));
       RgqNLL=std::exp(-std::log(1.-lchi));
       if((_channel==0)||(_channel==1)){
 	ris.push_back((std::pow(RggNNLL*UNNLL[1][1],2)
@@ -328,6 +339,141 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
     }
   }
   return ris; 
+}
+
+std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long double> N, std::complex<long double> b){
+  /* channel legends
+   * 0 all channels
+   * 1 gg only
+   * 2 gq only
+   * 3 qq only (means all flavours since Higgs resummation is flavour blind)
+   */
+  const std::complex<long double> Nbar= N*std::exp(EulerGamma);
+  const std::complex<long double> bbar= b/2.*std::exp(EulerGamma);
+  const std::complex<long double> chi= Nbar*Nbar+bbar*bbar;
+  const std::complex<long double> LC= std::log(chi);
+  const std::complex<long double> LN=std::log(Nbar*Nbar);
+  gsl_sf_result redilog,imdilog;
+  long double r=std::abs(Nbar*Nbar/chi);
+  long double theta=std::arg(Nbar*Nbar/chi);
+  gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
+  std::complex<long double> risdilog(redilog.val,imdilog.val);
+  AP.ComputeGamma(N,1);
+  
+  std::vector<std::complex<long double> > match;
+  switch (_ordres){
+    case (0):{
+      switch(_ordmatch){
+	case(0):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.);
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(1):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN));
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(2):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN)
+	  +_as*_as*(1./8.*Apt1g*Apt1g*std::pow(LC,4)-0.5*Apt1g*Apt1g*std::pow(LC,3)*LN
+	  +0.5*Apt1g*Apt1g*LC*LC*LN*LN-1./3.*Apt1g*std::pow(LC,3)*beta_0+0.5*beta_0*Apt1g*LC*LC*LN));
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+     }
+  }
+    case(1):{
+      switch(_ordmatch){
+	case(0):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.);
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(1):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*_LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*_LF*AP.gg0));
+	  else match.push_back((0.,0.));
+	  if ((_channel==0)||(_channel==2))
+	  match.push_back(_as*(Hgggq1(N)-LC*AP.gS0+_LF*AP.gS0));
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(2):{
+	  std::complex<long double> rad=std::sqrt((AP.gg0-AP.SS0)*(AP.gg0-AP.SS0)+4.*AP.gS0*AP.Sg0);
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*_LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*_LF*AP.gg0)
+	  +_as*_as*(Apt1g*Apt1g*std::pow(LC,4)/8.+1./6.*Apt1g*std::pow(LC,3)*(3.*Bpt1g-2.*beta_0+6.*AP.gg0)+_LF*_LF*(2.*AP.gg0*AP.gg0+AP.gS0*AP.Sg0)
+	  +0.5*LC*LC*(-Apt2g+Bpt1g*Bpt1g-Apt1g*Hpt1g-Bpt1g*beta_0+3.*Apt1g*_LR*beta_0+4.*Bpt1g*AP.gg0-2.*Apt1g*_LF*AP.gg0-2.*beta_0*AP.gg0+4.*AP.gg0*AP.gg0
+	  +2.*AP.gS0*AP.Sg0-Apt1g*Apt1g*risdilog)+LC*((-2.*beta_0*(-Apt2g*LN+4.*_LF*AP.gg0*AP.gg0+Bpt1g*(Hpt1g-2*_LR*beta_0+2.*_LF*AP.gg0)+2.*_LF*AP.gS0*AP.Sg0)
+	  *rad-Apt1q*LN*(_LR*beta_0*beta_0-beta_1)*(-AP.gg0+AP.SS0+rad)-Apt1g*LN*(-2.*Hpt1g*beta_0*rad+_LR*beta_0*beta_0*(AP.gg0-AP.SS0+5.*rad)
+	  +beta_1*(-AP.gg0+AP.SS0+rad)))/(2.*beta_0*rad)+Apt1g*(-Bpt1g+Apt1g*LN)*risdilog)));
+	  else match.push_back((0.,0.));
+	  if ((_channel==0)||(_channel==2))
+	  match.push_back(_as*(Hgggq1(N)-LC*AP.gS0+_LF*AP.gS0)+_as*_as*(0.5*Apt1g*std::pow(LC,3)*AP.gS0+0.5*_LF*_LF*AP.gS0*(3.*AP.gg0+AP.SS0)
+	  +0.5*LC*LC*(-Apt1g*(Hgggq1(N)+_LF*AP.gS0)+AP.gS0*(2.*Bpt1g-beta_0+3.*AP.gg0+AP.SS0))+0.5*LC*(-6.*_LF*AP.gg0*AP.gS0-2.*Bpt1g*(Hgggq1(N)+_LF*AP.gS0)
+	  -(Apt1g*LN*_LR*beta_0*AP.gS0-Apt1q*LN*_LR*beta_0*AP.gS0-Apt1g*LN*beta_1/beta_0*AP.gS0+Apt1q*LN*beta_1/beta_0*AP.gS0)/rad
+	  +1./beta_0/beta_0*((Apt1g+Apt1q)*Hgggq1(N)*LN*beta_0*beta_0+(-Apt1g+Apt1q)*LN*beta_1*AP.gS0-2.*_LF*beta_0*beta_0*AP.gS0*AP.SS0)
+	  +((Apt1g-Apt1q)*LN*(beta_0*beta_0*AP.gS1-AP.gS0*(2.*(AP.gS1*AP.Sg0+AP.gS0*AP.Sg1)+(AP.gg0-AP.SS0)*(AP.gg1-AP.SS1))
+	  +beta_0*(AP.gg1*AP.gS0-AP.gg0*AP.gS1+AP.gS1*AP.SS0-AP.gS0*AP.SS1)))/(beta_0*(beta_0*beta_0-4.*AP.gS0*AP.Sg0-(AP.gg0-AP.SS0)*(AP.gg0-AP.SS0))))));
+	  else match.push_back((0.,0.));
+	  if ((_channel==0)||(_channel==3))
+	  match.push_back(_as*_as*(LC*LC*AP.gS0*AP.gS0-2.*LC*_LF*AP.gS0*AP.gS0+_LF*_LF*AP.gS0*AP.gS0));
+	  else match.push_back((0.,0.));
+	}
+      }
+    }
+    case(2):{
+      switch(_ordmatch){
+	case(0):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.);
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(1):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*_LR*beta_0-2.*LC*AP.gg0+2.*_LF*AP.gg0+Apt1g*risdilog));
+	  if ((_channel==0)||(_channel==2))
+	  match.push_back(_as*(Hgggq1(N)+(-LC+_LF)*AP.gS0));
+	  else match.push_back((0.,0.));
+	  match.push_back((0.,0.));
+	}
+	case(2):{
+	  if ((_channel==0)||(_channel==1))
+	  match.push_back(1.+_as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*_LR*beta_0-2.*LC*AP.gg0+2.*_LF*AP.gg0+Apt1g*risdilog)
+	  +_as*_as*((Hggggreg2(N)+Hpt2g)-Bpt2g*LC-Apt2g*LC*LC/2.+Bpt1g*Bpt1g*LC*LC/2.-0.5*Apt1g*Hpt1g*LC*LC
+	  +Apt1g*Apt1g/8.*std::pow(LC,4)-Dpt2g*LN/2.-1./3.*Apt1g*beta_0*std::pow(LC,3)-3.*Hpt1g*_LR*beta_0+3./2.*Apt1g*LC*LC*_LR*beta_0
+	  +3.*_LR*_LR*beta_0*beta_0-2.*_LR*beta_1-2.*Hpt1g*LC*AP.gg0+Apt1g*std::pow(LC,3)*AP.gg0+2.*Hpt1g*_LF*AP.gg0
+	  -Apt1g*LC*LC*_LF*AP.gg0-LC*LC*beta_0*AP.gg0+std::pow(-_LF+_LR,2)*beta_0*AP.gg0+6.*LC*_LR*beta_0*AP.gg0-4.*_LF*_LR*beta_0*AP.gg0
+	  -_LR*_LR*beta_0*AP.gg0+2.*LC*LC*AP.gg0*AP.gg0-4.*LC*_LF*AP.gg0*AP.gg0+2.*_LF*_LF*AP.gg0*AP.gg0+0.5*Bpt1g*LC*
+	  (-2.*Hpt1g+Apt1g*LC*LC-LC*beta_0+6.*_LR*beta_0+4.*LC*AP.gg0-4.*_LF*AP.gg0)-2.*LC*AP.gg1+2.*_LF*AP.gg1+(LC-_LF)*
+	  (-2.*Hgggq1(N)+(LC-_LF)*AP.gS0)*AP.Sg0-0.5*Apt1g*(2.*Bpt1g*LC+Apt1g*LC*LC-2.*LN*beta_0+6.*_LR*beta_0+4.*LC*AP.gg0-4.*_LF*AP.gg0)*risdilog));
+	  else match.push_back((0.,0.));
+	  if ((_channel==0)||(_channel==2))
+	  match.push_back(_as*(Hgggq1(N)+(_LF-LC)*AP.gS0)+_as*_as*0.5*(2.*Hgggq2(N)+2.*Hgggq1(N)*LC*beta_0-6.*Hgggq1(N)*_LR*beta_0-2.*Hgggq1(N)*LC*AP.gg0
+	  +2.*Hgggq1(N)*_LF*AP.gg0-2.*Hpt1g*LC*AP.gS0+2.*Hpt1g*_LF*AP.gS0-LC*LC*beta_0*AP.gS0+std::pow(-_LF+_LR,2)*beta_0*AP.gS0+6.*LC*_LR*beta_0*AP.gS0
+	  -4.*_LF*_LR*beta_0*AP.gS0-_LR*_LR*beta_0*AP.gS0+3.*LC*LC*AP.gg0*AP.gS0-6.*LC*_LF*AP.gg0*AP.gS0+3.*_LF*_LF*AP.gg0*AP.gS0+2.*Bpt1g*LC*(-Hgggq1(N)
+	  +(LC-_LF)*AP.gS0)+Apt1g*LC*LC*(-Hgggq1(N)+(LC-_LF)*AP.gS0)-2.*LC*AP.gS1+2.*_LF*AP.gS1+(LC-_LF)*(-2.*Hgggq1(N)+(LC-_LF)*AP.gS0)*AP.SS0
+	  +2.*Apt1g*(_LF-LC)*AP.gS0*risdilog));
+	  else match.push_back((0.,0.));
+	  if ((_channel==0)||(_channel==3))
+	  match.push_back(_as*_as*(Hggqq2(N)+(LC-_LF)*AP.gS0*(-2.*Hgggq1(N)+(LC-_LF)*AP.gS0)));
+	  else match.push_back((0.,0.));
+	}
+      }
+    }
+  }
+  return match;
 }
 
 
