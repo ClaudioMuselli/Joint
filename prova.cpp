@@ -6,9 +6,17 @@
 #include "math/MellinFunc.h"
 #include "src/AP.h"
 #include <Joint.h>
+#include "src/Luminosity.h"
+#include <LHAPDF/LHAPDF.h>
 
 
 using namespace std;
+using namespace LHAPDF;
+
+
+
+
+
 
 int main(){
   std::complex<long double> NTest(2.,1.);
@@ -164,6 +172,9 @@ int main(){
   }
   cout << endl;
   
+  cout << "Test Luminosity" << endl;
+  Luminosity Lum(LHAPDF::mkPDF("NNPDF30_nnlo_as_0118"),125.09);
+  Lum.TestLum("TestLum.dat");
   
   
   
