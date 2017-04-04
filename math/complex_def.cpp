@@ -68,3 +68,16 @@ std::complex<long double> dilog_c(std::complex<long double> z){
 	std::complex<long double> ris(ris_r.val,ris_i.val);
 	return ris;
 }
+
+std::complex<long double> log_c_angle(std::complex<long double> z, long double angle){
+  long double lnr=std::abs(z);
+  long double theta=std::arg(z);
+  long double epsilon=1e-20;
+  if ((theta> (-M_PIl-epsilon))&&(theta < (angle+epsilon))){ 
+    theta+=2.*M_PIl+angle;
+  }
+  else theta+=angle;
+  std::complex<long double> ris(std::log(lnr),theta);
+  return ris;
+}
+

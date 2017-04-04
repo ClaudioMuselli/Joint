@@ -87,54 +87,47 @@ int integration::CUBA( int method, int (Func)(int*, double *, int *, double *, v
 struct InverMellin{
   std::function<std::complex<long double> (std::complex<long double>, void*)> PP;
   long double N0;
-  long double slope;
-  long double sign;
+  long double Nslope;
   long double tau;
   void *param;
 };
 
 struct InverBessel{
   std::function<std::complex<long double> (std::complex<long double>, void*)> BB;
-  long double b0=0.;
-  long double slope;
+  long double bc;
+  long double bslope;
   long double xp;
   long double v;
   void *param;
 };
 
-//GENERAL FUNCTION OF INTEGRATION
-int IM(int* ndim, double * x, int* ncomp, double* y, void *p){
+struct InverTotal{
+  std::function<std::complex<long double> (std::complex<long double>,  std::complex<long double>, void* )> TT;
+  long double bc;
+  long double N0;
+  long double Nslope;
+  long double bslope;
+  long double xp;
+  long double v;
+  long double tau;
+  void *param;
+};
+
+//MELLIN INVERSE
+int IM1(int* ndim, double * x, int* ncomp, double* y, void *p){
   InverMellin par= *(InverMellin *)p;
-  std::complex<long double> N=par.N0+(par.slope+par.sign*II)*std::log(x[0]);
+  std::complex<long double> N=par.N0+par.Nslope*(1.+II)*std::log(x[0]);
   
-  y[0]=std::imag(par.sign*(par.slope+par.sign*II)*std::exp(-N*std::log(par.tau))/M_PI/x[0]*par.PP(N,&par.param));
+  y[0]=std::imag(par.Nslope*(1.+II)*std::exp(-N*std::log(par.tau))/M_PI/x[0]*par.PP(N,&par.param));
   return 0;
 }
-
-int IB1(int* ndim, double *x, int* ncomp, double* y, void* p){
-  InverBessel par=*(InverBessel *) p;
-  std::complex<long double> b=par.b0-(par.slope+II)*std::log(x[0]);
-  std::complex<long double> theta=-II*par.v*M_PIl+x[1]*M_PIl*(-1.+2.*II*par.v);
+int IM2(int* ndim, double * x, int* ncomp, double* y, void *p){
+  InverMellin par= *(InverMellin *)p;
+  std::complex<long double> N=par.N0+par.Nslope*(1.-II)*std::log(x[0]);
   
-  y[0]=std::real(-b/4.*(-1.+2.*II*par.v)*(par.slope+II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
-  y[1]=std::imag(-b/4.*(-1.+2.*II*par.v)*(par.slope+II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
-  return 0;
-  
-}
-
-
-int IB2(int* ndim, double *x, int* ncomp, double* y, void* p){
-  InverBessel par=*(InverBessel *) p;
-  std::complex<long double> b=par.b0-(par.slope-II)*std::log(x[0]);
-  std::complex<long double> theta=-II*par.v*M_PIl+x[1]*M_PIl*(1.+2.*II*par.v);
-  
-  y[0]=std::real(b/4.*(1.+2.*II*par.v)*(par.slope-II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
-  y[1]=std::imag(b/4.*(1.+2.*II*par.v)*(par.slope-II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
+  y[0]=std::imag(-par.Nslope*(1.-II)*std::exp(-N*std::log(par.tau))/M_PI/x[0]*par.PP(N,&par.param));
   return 0;
 }
-
-
-
 
 double integration::InverseMellin(int method, std::complex<long double> (Func)(std::complex<long double> , void* ), 
 				  long double tau, long double N0, long double slope, bool sign, void *pp) {
@@ -146,45 +139,141 @@ double integration::InverseMellin(int method, std::complex<long double> (Func)(s
   InverMellin IMC;
   IMC.PP=Func;
   IMC.N0=N0;
-  IMC.slope=slope;
+  IMC.Nslope=slope;
   IMC.tau=tau;
-  //sign==true sign=-1, sign==false sign=+1
-  if (sign) {
-    IMC.sign=-1.;
-  }
-  else IMC.sign=1.;
   IMC.param=pp;
-  CUBA(method,IM,2,1,prec,&res,&fail,&err,&prob,&IMC);
+  //sign==true sign=-1, sign==false sign=+1
+  if (sign)
+    CUBA(method,IM2,2,1,prec,&res,&fail,&err,&prob,&IMC);
+  else 
+    CUBA(method,IM1,2,1,prec,&res,&fail,&err,&prob,&IMC);
   return res[0];
 }
 
+int IB3(int* ndim, double *x, int* ncomp, double* y,void* p){
+  InverBessel par=*(InverBessel *)p;
+  std::complex<long double> b=par.bc*x[0];
+  y[0]=std::real(par.bc*b/2.*(std::complex<long double>)(sp_bessel::besselJ(0.,(std::complex<double>)(b*std::sqrt(par.xp))))*par.BB(b,par.param));
+  y[1]=std::imag(par.bc*b/2.*(std::complex<long double>)(sp_bessel::besselJ(0.,(std::complex<double>)(b*std::sqrt(par.xp))))*par.BB(b,par.param));
+}
+
+int IB1(int* ndim, double *x, int* ncomp, double* y, void* p){
+  InverBessel par=*(InverBessel *) p;
+  std::complex<long double> b=par.bc-par.bslope*(1.+II)*std::log(x[0]);
+  std::complex<long double> theta=-II*par.v*M_PIl+x[1]*M_PIl*(-1.+2.*II*par.v);
+  
+  y[0]=std::real(-b/4.*(-1.+2.*II*par.v)*par.bslope*(1.+II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
+  y[1]=std::imag(-b/4.*(-1.+2.*II*par.v)*par.bslope*(1.+II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
+  return 0;
+  
+}
+
+int IB2(int* ndim, double *x, int* ncomp, double* y, void* p){
+  InverBessel par=*(InverBessel *) p;
+  std::complex<long double> b=par.bc-par.bslope*(1.-II)*std::log(x[0]);
+  std::complex<long double> theta=-II*par.v*M_PIl+x[1]*M_PIl*(1.+2.*II*par.v);
+  //std::complex<long double> PROVAT(std::complex<long double> N, std::complex<long double> b, void * par){
+//  return (log_c_angle(N*N+b*b/4.,-M_PIl/2.));
+//}
+  y[0]=std::real(b/4.*(1.+2.*II*par.v)*par.bslope*(1.-II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
+  y[1]=std::imag(b/4.*(1.+2.*II*par.v)*par.bslope*(1.-II)/x[0]*std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.BB(b,par.param));
+  return 0;
+}
+
 std::complex<long double> integration::InverseBessel(int method, std::complex<long double> (Func)(std::complex<long double> , void*),
-						     long double xp, long double v, long double slope, void *pp){
+						     long double xp, long double bc, long double v, long double slope, void *pp){
   double prec=1e-8;
   int fail; double *err, *prob;
   InverBessel IBC;
   IBC.BB=Func;
   IBC.v=v;
-  IBC.slope=slope;
+  IBC.bslope=slope;
   IBC.xp=xp;
   IBC.param=pp;
-  double *ris1,*ris2;
+  IBC.bc=bc;
+  double *ris1,*ris2,*ris3;
   ris1=new double[2];
   ris2=new double[2];
   err=new double[2];
   prob=new double[2];
   CUBA(method,IB1,2,2,prec,&ris1,&fail,&err,&prob,&IBC);
   CUBA(method,IB2,2,2,prec,&ris2,&fail,&err,&prob,&IBC);
+  CUBA(method,IB3,2,2,prec,&ris3,&fail,&err,&prob,&IBC);
   std::complex<long double> result;
-  result=ris1[0]+ris2[0]+II*(ris1[1]+ris2[1]);
+  result=ris1[0]+ris2[0]+ris3[0]+II*(ris1[1]+ris2[1]+ris3[1]);
   return(result);  
 }
 
 
+int IT1(int* ndim, double *x, int* ncomp, double* y, void* p){
+  InverTotal par=*(InverTotal *)p;
+  std::complex<long double> N=par.N0+par.Nslope*(1.-II)*std::log(x[0]);
+  std::complex<long double> b=par.bc*x[1];
+  
+  y[0]=std::imag(-par.Nslope*(1.-II)/x[0]*par.bc/M_PIl*std::exp(-N*std::log(par.tau))*b/2.
+      *(std::complex<long double>)(sp_bessel::besselJ(0.,(std::complex<double>)(b*std::sqrt(par.xp))))*par.TT(N,b,par.param));
+  return 0;
+}
 
+int IT2(int* ndim, double *x, int* ncomp, double* y, void* p){
+  InverTotal par=*(InverTotal *)p;
+  std::complex<long double> N=par.N0+par.Nslope*(1.-II)*std::log(x[0]);
+  std::complex<long double> b=par.bc-par.bslope*(1.+II)*std::log(x[1]);
+  std::complex<long double> theta=-II*par.v*M_PIl+x[2]*M_PIl*(-1.+2.*II*par.v);
+  
+  y[0]=std::imag(par.Nslope*(1.-II)/x[0]/M_PIl*std::exp(-N*std::log(par.tau))*b/4.*(-1.+2.*II*par.v)*par.bslope*(1.+II)/x[1]
+      *std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.TT(N,b,par.param));
+  return 0;
+}
 
+int IT3(int* ndim, double *x, int* ncomp, double* y, void* p){
+  InverTotal par=*(InverTotal *)p;
+  std::complex<long double> N=par.N0+par.Nslope*(1.+II)*std::log(x[0]);
+  std::complex<long double> b=par.bc-par.bslope*(1.-II)*std::log(x[1]);
+  std::complex<long double> theta=-II*par.v*M_PIl+x[2]*M_PIl*(1.+2.*II*par.v);
+  
+  y[0]=std::imag(par.Nslope*(1.+II)/x[0]/M_PIl*std::exp(-N*std::log(par.tau))*b/4.*(1.+2.*II*par.v)*par.bslope*(1.-II)/x[1]
+      *std::exp(-II*b*std::sqrt(par.xp)*std::sin(theta))*par.TT(N,b,par.param));
+  return 0;
+}
 
+double integration::InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),
+						     long double xp, long double tau, void *pp){
+  double prec=1e-8;
+  int fail; double *err=NULL, *prob=NULL;
+  InverTotal ITC1, ITC2;
+  long double Nslope=1.5;
+  long double bslope=2.5;
+  long double v=15.;
+  long double bc=5.;
+  ITC1.TT=Func;
+  ITC2.TT=Func;
+  ITC1.xp=xp;
+  ITC2.xp=xp;
+  ITC1.tau=tau;
+  ITC2.tau=tau;
+  ITC1.Nslope=Nslope;
+  ITC2.Nslope=Nslope;
+  ITC1.v=v;
+  ITC2.v=v;
+  ITC1.param=pp;
+  ITC2.param=pp;
+  ITC1.bc=bc;
+  ITC2.bc=bc;
+  
+  ITC1.N0=3.;
+  ITC2.N0=2.;
+  
+  double *ris1=NULL,*ris2=NULL,*ris3=NULL;
+  CUBA(method,IT1,3,1,prec,&ris1,&fail,&err,&prob,&ITC1);
+  CUBA(method,IT2,3,1,prec,&ris2,&fail,&err,&prob,&ITC1);
+  CUBA(method,IT3,3,1,prec,&ris3,&fail,&err,&prob,&ITC2);
+  
+  //double result= ris1[0];
+  double result= ris1[0]+ris2[0]+ris3[0];
+  return result;
 
+}
 
 
 

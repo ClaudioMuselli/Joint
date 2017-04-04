@@ -7,16 +7,32 @@
 #include "src/AP.h"
 #include <Joint.h>
 #include "src/Luminosity.h"
+#include "math/integration.h"
 #include <LHAPDF/LHAPDF.h>
+#include <complex_bessel.h>
 
 
 using namespace std;
 using namespace LHAPDF;
+using namespace sp_bessel;
 
 
 
+std::complex<long double> PROVAN(std::complex<long double> N, void * par){
+  return (-std::log(N));
+}
 
+std::complex<long double> PROVAB(std::complex<long double> b, void * par){
+  return (-std::log(b));
+}
 
+//std::complex<long double> PROVAT(std::complex<long double> N, std::complex<long double> b, void * par){
+//  return (log_c_angle(N*N+b*b/4.,-M_PIl/2.));
+//}
+
+std::complex<long double> PROVAT(std::complex<long double> N, std::complex<long double> b, void * par){
+  return (1./(b)*1/N);
+}
 
 int main(){
   std::complex<long double> NTest(2.,1.);
@@ -127,7 +143,7 @@ int main(){
   cout << risdilog << endl;
   cout << endl;*/
   
-  Joint JLL(0,2,0,true);
+  /*Joint JLL(0,2,0,true);
   Joint JNLL(1,2,0,true);
   Joint JNNLL(2,2,0,true);
   //cout << J.Hgggq1(NTest) << " " << J.Hggggreg2(NTest) << " " << J.Hgggq2(NTest)<< endl;
@@ -172,14 +188,38 @@ int main(){
   }
   cout << endl;
   
-  cout << "Test Luminosity" << endl;
-  Luminosity Lum(LHAPDF::mkPDF("NNPDF30_nnlo_as_0118"),125.09);
-  Lum.TestLum("TestLum.dat");
+  //cout << "Test Luminosity" << endl;
+  //Luminosity Lum(LHAPDF::mkPDF("NNPDF30_nnlo_as_0118"),125.09);
+  //Lum.TestLum("TestLum.dat");*/
   
   
+  cout<< "TEST INVERSE MELLIN" << endl;
+  cout << integration::InverseMellin(3,PROVAN,0.1,3.,2.,true,NULL) << endl;
+  cout << integration::InverseMellin(3,PROVAN,0.1,3.,1.5,false,NULL) << endl;
+  cout << integration::InverseMellin(3,PROVAN,0.1,3.,1.5,false,NULL) << endl;
+  cout << integration::InverseMellin(3,PROVAN,0.1,5.,3,true,NULL) << endl;
+  cout << integration::InverseMellin(3,PROVAN,0.1,7.,1.5,true,NULL) << endl;
   
+  cout << "TEST INVERSE BESSEL" << endl;
+  cout << integration::InverseBessel(3,PROVAB,0.3,2.,15.,2.5,NULL) << endl;
+  cout << integration::InverseBessel(3,PROVAB,0.3,4.,15.,2.5,NULL) << endl;
   
+  cout << "TEST INVERSE TOTAL" << endl;
+  cout << integration::InverseMellinBessel(3,PROVAT,0.3,0.1,NULL) << endl;
   
+  cout << "TEST BESSEL" << endl;
+  cout << sp_bessel::besselJ(2,(std::complex<double>) NTest)<< endl;
+  cout << sp_bessel::besselI(1+0.1,(std::complex<double>) NTest)<< endl;
+  cout << sp_bessel::besselK(1,(std::complex<double>) NTest)<< endl;
+  cout << sp_bessel::besselY(22,(std::complex<double>) NTest)<< endl;
+  cout << "CIAO" << endl;
+  
+  cout << "TEST LOG" << endl;
+  cout << log_c_angle(NTest,-M_PIl/2.) << endl;
+  cout << log_c_angle(-3.-0.000001*II,-M_PIl/2.) << endl;
+  cout << log_c_angle(-3.+0.000001*II,-M_PIl/2.) << endl;
+  cout << log_c_angle(-0.000001-3.*II,-M_PIl/2.) << endl;
+  cout << log_c_angle(0.000001-3.*II,-M_PIl/2.) << endl;
   
   
   

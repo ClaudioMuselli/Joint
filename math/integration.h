@@ -15,6 +15,10 @@
 #include <complex>
 #include "complex_def.h"
 #include <functional>
+#include <complex_bessel.h>
+
+
+using namespace sp_bessel;
 
 namespace integration {
  
@@ -28,9 +32,11 @@ namespace integration {
   
   extern double InverseMellin(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, bool sign, void *pp);
   
-  extern std::complex<long double> InverseBessel(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double v, long double slope, void *pp); 
+  extern std::complex<long double> InverseBessel(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp); 
 
+  extern double InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),
+						     long double xp, long double tau, void *pp);
+  
 }
-
 
 #endif 

@@ -1,6 +1,7 @@
 #ifndef __COMPLEXDEF_H__
 #define __COMPLEXDEF_H__
 
+#include <iostream>
 #include <complex>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_gamma.h>
@@ -37,6 +38,6 @@ const std::complex<long double> II(0.0,1.0);
 std::complex<long double> log_c(std::complex<long double> z);
 std::complex<long double> dilog_c(std::complex<long double> z);
 
-
+std::complex<long double> log_c_angle(std::complex<long double> z, long double angle);
 
 #endif
