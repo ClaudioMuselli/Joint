@@ -9,6 +9,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_monte_vegas.h>
+#include <gsl/gsl_multifit.h>
 #include <gsl/gsl_rng.h>
 #include <cuba.h>
 #include <vector>
@@ -30,13 +31,46 @@ namespace integration {
   extern int CUBA(int method, int (Func)(int*, double *, int*, double*, void*),
 		     int ndim,int ncomp, double prec,double **res, int *fail, double **error, double **prob,void *par);
   
-  extern double InverseMellin(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, bool sign, void *pp);
+  extern double InverseMellin_path(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, void *pp);
+  extern double InverseMellin_epsilon(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, void *pp);
   
-  extern std::complex<long double> InverseBessel(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp); 
+  extern std::complex<long double> InverseBessel_path(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp);
+  extern std::complex<long double> InverseBessel_epsilon(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, void *pp);
 
-  extern double InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),
-						     long double xp, long double tau, void *pp);
+  extern int InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),
+						     long double xp, long double tau, void *pp, double *ris, double *error, double *chi,
+				 long double N0=2.,int nump=10, double precint=1e-2, double epstart=5e-4, double eprate=5e-4);
   
+  extern int PolynomialFit(int ncoeff, int ndat, double *xpoint, double *ypoint, double *errypoint, double **coeff, double **errcoeff, double *chisq);
+  //coeff and errcoeff are allocated inside
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif 

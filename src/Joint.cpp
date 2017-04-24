@@ -12,7 +12,7 @@ Joint::Joint(const int ordres, const int ordmatch, int channel, bool Wilson): AP
   const long double zeta4=gsl_sf_zeta_int(4);
   
   
-  //REMEMBER!!! ALL in unity as/Pi
+  //REMEMBER!!! ALL in unity as
   beta_0=(11.*_Ca-2.*_Nf)/(12.*M_PIl);
   beta_1=((17.*_Ca*_Ca-5.*_Ca*_Nf-3.*_Cf*_Nf)*2./3.)/(16.*M_PIl*M_PIl);
   beta_2=((2857./54.*_Ca*_Ca*_Ca+(_Cf*_Cf-205./18.*_Cf*_Ca-1415./54.*_Ca*_Ca)*_Nf
