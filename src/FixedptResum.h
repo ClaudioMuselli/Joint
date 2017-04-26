@@ -10,6 +10,7 @@
 #include <sstream>
 #include "AP.h"
 #include "../math/MellinFunc.h"
+#include "../math/complex_def.h"
 
 using namespace std;
 
@@ -18,14 +19,24 @@ public:
     FixedptResum(const int ordres, const int ordmatch, int channel, bool Wilson);
     virtual ~FixedptResum();
   
-    std::complex<long double> ComputeFixedptResum(std::complex<long double> N, long double xp);
-    std::complex<long double> ComputeMatching(std::complex<long double> N, long double xp);
+    std::vector<std::complex<long double>> ComputeFixedptResum(std::complex<long double> N, long double xp);
+    std::vector<std::complex<long double>> ComputeMatching(std::complex<long double> N, long double xp);
   
     //Higgs Cross section
     //LO cross section
     std::complex<long double> LOgggH(std::complex<long double> N, long double xp);
     std::complex<long double> LOgqqH(std::complex<long double> N, long double xp);
     std::complex<long double> LOqqgH(std::complex<long double> N, long double xp);
+    
+    //Sudakov
+    std::complex<long double> Sudakov_th_gggH(std::complex<long double> N, long double xp);
+    std::complex<long double> Sudakov_th_gqqH(std::complex<long double> N, long double xp);
+    std::complex<long double> Sudakov_th_qqgH(std::complex<long double> N, long double xp);
+    
+    //MatchingConstant - hard part
+    long double Hth1gggH(long double xp);
+    long double Hth1gqqH(long double xp);
+    long double Hth1qqgH(long double xp);
   
 private:
     int _ordres,_ordmatch;
@@ -58,15 +69,7 @@ private:
     long double beta_0,beta_1,beta_2;
     
   
-    //Sudakov
-    std::complex<long double> Sudakov_th_gggg(std::complex<long double> N, long double xp);
-    std::complex<long double> Sudakov_th_gggq(std::complex<long double> N, long double xp);
-    std::complex<long double> Sudakov_th_ggqq(std::complex<long double> N, long double xp);
     
-    //MatchingConstant - hard part
-    long double Hth1gggg(long double xp);
-    long double Hth1gggq(long double xp);
-    long double Hth1ggqq(long double xp);
      
 };
 

@@ -18,6 +18,7 @@ class Joint{
     Joint(const int ordres, const int ordmatch, int channel, bool Wilson);
     virtual ~Joint();
     
+    //Return a vector of three components in the case of Higgs which is flavour blind (gg,gq,qq)
     std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b);
     std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b);
     

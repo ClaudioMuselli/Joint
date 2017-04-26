@@ -13,27 +13,87 @@
 
 using namespace sp_bessel;
 
+
+
 std::complex<long double> operator*(const std::complex<long double>& a, const double& b);
 
-std::complex<long double> operator*(const double& a,const std::complex<long double>& b);
+ std::complex<long double> operator*(const double& a,const std::complex<long double>& b);
 
-std::complex<long double> operator/(const std::complex<long double>& a, const double& b);
+ std::complex<long double> operator/(const std::complex<long double>& a, const double& b);
 
-std::complex<long double> operator/(const double& a,const std::complex<long double>& b);
+ std::complex<long double> operator/(const double& a,const std::complex<long double>& b);
 
-std::complex<long double> operator-(const std::complex<long double>& a, const double& b);
+ std::complex<long double> operator-(const std::complex<long double>& a, const double& b);
 
-std::complex<long double> operator-(const double& a,const std::complex<long double>& b);
+ std::complex<long double> operator-(const double& a,const std::complex<long double>& b);
 
-std::complex<long double> operator+(const std::complex<long double>& a, const double& b);
+ std::complex<long double> operator+(const std::complex<long double>& a, const double& b);
 
-std::complex<long double> operator+(const double& a,const std::complex<long double>& b);
+ std::complex<long double> operator+(const double& a,const std::complex<long double>& b);
+
+ bool operator == (const std::complex<long double> &z,const double &a);
+
+ bool operator != (const std::complex<long double> &z,const double &a);
+
+ bool operator == (const double &a,const std::complex<long double> &z);
+
+ bool operator != (const double &a,const std::complex<long double> &z);
+
+//operation natural numbers
+ std::complex<long double> operator + (const std::complex<long double> &z,const int n);
+
+ std::complex<long double> operator - (const std::complex<long double> &z,const int n);
+
+ std::complex<long double> operator * (const std::complex<long double> &z,const int n);
+
+ std::complex<long double> operator / (const std::complex<long double> &z,const int n);
+
+ std::complex<long double> operator + (const int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator - (const int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator * (const int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator / (const int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator + (const std::complex<long double> &z,const unsigned int n);
+
+ std::complex<long double> operator - (const std::complex<long double> &z,const unsigned int n);
+
+ std::complex<long double> operator * (const std::complex<long double> &z,const unsigned int n);
+
+ std::complex<long double> operator / (const std::complex<long double> &z,const unsigned int n);
+
+ std::complex<long double> operator + (const unsigned int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator - (const unsigned int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator * (const unsigned int n,const std::complex<long double> &z);
+
+ std::complex<long double> operator / (const unsigned int n,const std::complex<long double> &z);
+
+ bool operator == (const std::complex<long double> &z,const int n);
+
+ bool operator != (const std::complex<long double> &z,const int n);
+
+ bool operator == (const int n,const std::complex<long double> &z);
+
+ bool operator != (const int n,const std::complex<long double> &z);
+
+ bool operator == (const std::complex<long double> &z,const unsigned int n);
+
+ bool operator != (const std::complex<long double> &z,const unsigned int n);
+
+ bool operator == (const unsigned int n,const std::complex<long double> &z);
+
+ bool operator != (const unsigned int n,const std::complex<long double> &z);
 
 std::complex<long double> pow(const long double& a, const std::complex<long double> &b);
 std::complex<long double> pow(const std::complex<long double>& a, const long double &b);
 std::complex<long double> pow(const std::complex<long double>& a, const std::complex<long double> &b);
 
-inline long double inf_norm (const std::complex<long double> &z);
+ long double inf_norm (const std::complex<long double> &z);
+ bool isfinite (const std::complex<long double> &z);
 
 //Useful Math functions
 long double log_r(long double x);
@@ -55,6 +115,6 @@ std::complex<long double> LBesselJ(long double k, std::complex<long double> z);
 std::complex<long double> LBesselK(long double k, std::complex<long double> z);
 
 //Works only if abs(z)<1
-std::complex<long double> Hyp2F1(std::complex<long double> a,std::complex<long double> b, std::complex<long double> c, std::complex<long double> z);
+std::complex<long double> Hyp2F1 (std::complex<long double> a,std::complex<long double> b, std::complex<long double> c,std::complex<long double> z);
 
 #endif
