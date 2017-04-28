@@ -329,6 +329,15 @@ long double Luminosity::Lum_x(long double z, unsigned channel) const {
 	return ris;
 }
 
+
+std::vector<Luminosity::dcomplex> Luminosity::Higgs_Lum_N(dcomplex N){
+  std::vector<dcomplex> Lum;
+  Lum.push_back(Lum_N(N,0));
+  Lum.push_back(Lum_N(N,1));
+  Lum.push_back(Lum_N(N,2)+Lum_N(N,3)+Lum_N(N,4)+Lum_N(N,5));
+  return Lum;
+}
+
 //Test Function
 void Luminosity::TestLum(std::string nameout){
   std::ofstream OUT;

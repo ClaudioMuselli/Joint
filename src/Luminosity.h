@@ -15,6 +15,7 @@
 #include <gsl/gsl_integration.h>
 #include <fstream>
 #include <string>
+#include <vector>
 
 class Luminosity {
 	public:
@@ -48,6 +49,8 @@ class Luminosity {
 		
 		dcomplex Lum_qQ_N(dcomplex N) const {	return Lum_N(N,5);	}
 		long double Lum_qQ_x(long double z) const { return Lum_x(z,5);  }
+		
+		std::vector<dcomplex> Higgs_Lum_N(dcomplex N);
 		
 
 		double xfxQ(int channel, double x){

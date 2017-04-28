@@ -10,26 +10,34 @@
 #include <sstream>
 #include "AP.h"
 #include "../math/MellinFunc.h"
+#include "PhisConst.h"
 
 using namespace std;
 
+//WARNING: N-1 messo nella parte hard ma non nell'evoluzione... non so cosa sia meglio controllare alla fine... 
+//In più matching con il NNLO non implementato ancora
+
+
 class Joint{
   public: 
-    Joint(const int ordres, const int ordmatch, int channel, bool Wilson);
+    Joint(const int ordres, const int ordmatch, int channel, bool Wilson, ConstResum cc, long double Nc=3., long double Nf=5.);
     virtual ~Joint();
     
     //Return a vector of three components in the case of Higgs which is flavour blind (gg,gq,qq)
-    std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b);
-    std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b);
+    std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b, ConstResum cc);
+    std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b, ConstResum cc);
+    
+    void SetOrdRes(int ordres);
+    void SetOrdMatch(int ordmatch);
+    int SetChannel(int channel);
     
    
   private:
     int _ordres,_ordmatch;
-    //Scale and alpha_s
-    long double _LF=0.1,_LR=0.1;
-    long double _as=1./128.;
+    //Scale and alpha_s+
+    ConstResum con;
     //Important Constants
-    const long double _Nc=3., _Nf=5.;
+    long double _Nc,_Nf;
     long double _Ca, _Cf;
     //Channels
     int _channel;
@@ -61,10 +69,10 @@ class Joint{
     
     
     //Hard part
-    std::complex<long double> Hgggq1(std::complex<long double> N);
-    std::complex<long double> Hgggq2(std::complex<long double> N);
-    std::complex<long double> Hggggreg2(std::complex<long double> N);
-    std::complex<long double> Hggqq2(std::complex<long double> N);
+    std::complex<long double> Hgggq1(std::complex<long double> NN);
+    std::complex<long double> Hgggq2(std::complex<long double> NN);
+    std::complex<long double> Hggggreg2(std::complex<long double> NN);
+    std::complex<long double> Hggqq2(std::complex<long double> NN);
     
      //Sudakov
     std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> b);

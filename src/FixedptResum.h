@@ -11,22 +11,24 @@
 #include "AP.h"
 #include "../math/MellinFunc.h"
 #include "../math/complex_def.h"
+#include "PhisConst.h"
 
 using namespace std;
 
+
 class FixedptResum {
 public:
-    FixedptResum(const int ordres, const int ordmatch, int channel, bool Wilson);
+    FixedptResum(const int ordres, const int ordmatch, int channel, bool Wilson, ConstResum cc, long double Nc=3., long double Nf=5.);
     virtual ~FixedptResum();
-  
-    std::vector<std::complex<long double>> ComputeFixedptResum(std::complex<long double> N, long double xp);
-    std::vector<std::complex<long double>> ComputeMatching(std::complex<long double> N, long double xp);
+    
+    std::vector<std::complex<long double>> ComputeFixedptResum(std::complex<long double> N, long double xp,ConstResum cc);
+    std::vector<std::complex<long double>> ComputeMatching(std::complex<long double> N, long double xp, ConstResum cc);
   
     //Higgs Cross section
     //LO cross section
-    std::complex<long double> LOgggH(std::complex<long double> N, long double xp);
-    std::complex<long double> LOgqqH(std::complex<long double> N, long double xp);
-    std::complex<long double> LOqqgH(std::complex<long double> N, long double xp);
+    std::complex<long double> LOgggH(std::complex<long double> NN, long double xp);
+    std::complex<long double> LOgqqH(std::complex<long double> NN, long double xp);
+    std::complex<long double> LOqqgH(std::complex<long double> NN, long double xp);
     
     //Sudakov
     std::complex<long double> Sudakov_th_gggH(std::complex<long double> N, long double xp);
@@ -37,14 +39,17 @@ public:
     long double Hth1gggH(long double xp);
     long double Hth1gqqH(long double xp);
     long double Hth1qqgH(long double xp);
+    
+    void SetChannel(int channel);
+    void SetOrdRes(int ordres);
+    void SetOrdMatch(int ordmatch);
   
 private:
     int _ordres,_ordmatch;
     //Scale and alpha_s
-    long double _LF=0.1,_LR=0.1;
-    long double _as=1./128.;
+    ConstResum con;
     //Important Constants
-    const long double _Nc=3., _Nf=5.;
+    long double _Nc, _Nf;
     long double _Ca, _Cf;
     long double sigma_0;
     //Channels
