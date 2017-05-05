@@ -1,6 +1,6 @@
 #include "Joint.h"
 
-Joint::Joint(const int ordres, const int ordmatch, int channel, bool Wilson, ConstResum cc, long double Nc, long double Nf): AP(Nf,Nc),con(cc){
+Joint::Joint(const int ordres, const int ordmatch, int channel, bool Wilson, long double Nc, long double Nf): AP(Nf,Nc){
   _ordres=ordres; _ordmatch=ordmatch; _channel=channel;_Wilson=Wilson;_Nc=Nc;_Nf=Nf;
   
   //Initialise constants
@@ -59,11 +59,11 @@ Joint::Joint(const int ordres, const int ordmatch, int channel, bool Wilson, Con
   V1[1]=new std::complex<long double>[2];
   
   if (_ordres>2){
-    cout << "Resummation is implemented only up to NNLL! Set resummation order to NNLL" << endl;
+    std::cout << "Resummation is implemented only up to NNLL! Set resummation order to NNLL" << std::endl;
     _ordres=2;
   }
   if (_ordmatch>2){
-    cout << "Matching is implemented only up to NNLO! Set matching order to NNLO" << endl;
+    std::cout << "Matching is implemented only up to NNLO! Set matching order to NNLO" << std::endl;
     _ordmatch=2;
   }
   
@@ -84,14 +84,12 @@ int Joint::SetChannel(int channel){
 }
 
 //Sudakov Higgs
-std::complex<long double> Joint::Sudakov_g(std::complex<long double> N, std::complex<long double> b){
-  const long double LR=std::log(con._Q*con._Q/std::pow(con._MUR,2.));
+std::complex<long double> Joint::Sudakov_g(std::complex<long double> N, std::complex<long double> lchi){
+  const long double LR=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUR,2.));
   const std::complex<long double> Nbar= N*std::exp(EulerGamma);
-  const std::complex<long double> bbar= b/2.*std::exp(EulerGamma);
   
-  const std::complex<long double> chi= Nbar*Nbar+bbar*bbar;
-  const std::complex<long double> LC= std::log(chi);
-  const std::complex<long double> lchi= con._as*beta_0*LC;
+  const std::complex<long double> LC= lchi/ConstResum::as/beta_0;
+  const std::complex<long double> lN=2.*ConstResum::as*beta_0*std::log(Nbar);
   std::complex<long double> Sud_g1_g(0.,0.),Sud_g2_g(0.,0.),Sud_g3_g(0.,0.);
   if (_ordres>=0) {
     Sud_g1_g=Apt1g/beta_0/beta_0*(lchi+std::log(1.-lchi));
@@ -103,11 +101,11 @@ std::complex<long double> Joint::Sudakov_g(std::complex<long double> N, std::com
   }
   if (_ordres>=2) {
     gsl_sf_result redilog,imdilog;
-    long double r=std::abs(Nbar*Nbar/chi);
-    long double theta=std::arg(Nbar*Nbar/chi);
+    long double r=std::abs(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
+    long double theta=std::arg(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
     gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
     std::complex<long double> risdilog(redilog.val,imdilog.val);
-    const std::complex<long double> lN=con._as*beta_0*std::log(Nbar*Nbar);
+    //std::complex<long double> risdilog(0.,0);
     Sud_g3_g=Apt1g*beta_1*beta_1/(2.*std::pow(beta_0,4))*((lchi+std::log(1.-lchi))/(std::pow(1.-lchi,2))*(lchi+(1.-2.*lchi)*std::log(1.-lchi)))
 					    +Apt1g*beta_2/std::pow(beta_0,3)*(((2.-3.*lchi)*lchi)/(2.*std::pow(1.-lchi,2))+std::log(1.-lchi))
 					    -Apt2g*beta_1/std::pow(beta_0,3)*(((2.-3.*lchi)*lchi)/(2.*std::pow(1.-lchi,2))+(1.-2.*lchi)*std::log(1.-lchi)/std::pow(1.-lchi,2))
@@ -115,8 +113,7 @@ std::complex<long double> Joint::Sudakov_g(std::complex<long double> N, std::com
 					    -Bpt2g/beta_0*lchi/(1.-lchi)+Apt1g*lN/(1.-lN)*risdilog+Bpt1g*lchi/(1.-lchi)*LR+Apt2g/beta_0*lchi*lchi/std::pow(1.-lchi,2)*LR
 					    +Apt1g*beta_1/std::pow(beta_0,2)*((lchi*(1.-lchi)+(1.-2.*lchi)*std::log(1.-lchi))/std::pow(1.-lchi,2))*LR-Apt1g/2.*std::pow(lchi/(1.-lchi)*LR,2);    
   }
-  //cout << "Sud= " << 1./con._as*Sud_g1_g+Sud_g2_g+con._as*Sud_g3_g << endl;
-  return std::exp(1./con._as*Sud_g1_g+Sud_g2_g+con._as*Sud_g3_g); 
+  return std::exp(1./ConstResum::as*Sud_g1_g+Sud_g2_g+ConstResum::as*Sud_g3_g); 
 }
 
 //Hard part Higgs
@@ -205,31 +202,28 @@ std::complex<long double> Joint::Hggqq2(std::complex<long double> NN){
 }
 
 
-void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long double> b){
+void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long double> lchi){
   AP.ComputeGamma(N,1);
   const std::complex<long double> rad=std::sqrt(std::pow(AP.gg0-AP.SS0,2)+4.*AP.gS0*AP.Sg0);
   std::complex<long double> lnEPLL(0.,0.),lnEMLL(0.,0.),lnEPNLL(0.,0.),lnEMNLL(0.,0.),lnEPNNLL(0.,0.),lnEMNNLL(0.,0.);
   const std::complex<long double> Nbar= N*std::exp(EulerGamma);
-  const std::complex<long double> bbar= b/2.*std::exp(EulerGamma);
   
-  const std::complex<long double> chi= Nbar*Nbar+bbar*bbar;
-  const std::complex<long double> LC= std::log(chi);
-  const std::complex<long double> lchi= con._as*beta_0*LC;
-  const std::complex<long double> lN=con._as*beta_0*std::log(Nbar*Nbar);
-  const long double LR=std::log(con._Q*con._Q/std::pow(con._MUR,2.));
-  const long double LF=std::log(con._Q*con._Q/std::pow(con._MUF,2.));
+  const std::complex<long double> LC= lchi/ConstResum::as/beta_0;
+  const std::complex<long double> lN=2.*ConstResum::as*beta_0*std::log(Nbar);
+  const long double LR=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUR,2.));
+  const long double LF=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUF,2.));
   if (_ordres >=0){
     lnEPLL=-Apt1g/2./beta_0/beta_0*lN*std::log(1.-lchi);
     lnEMLL=-Apt1q/2./beta_0/beta_0*lN*std::log(1.-lchi);
-    ULL[0][0]=(std::exp(1./con._as*lnEMLL));
+    ULL[0][0]=(std::exp(1./ConstResum::as*lnEMLL));
     ULL[0][1]=0.+II*0.;
     ULL[1][0]=0.+II*0.;
-    ULL[1][1]=(std::exp(1./con._as*lnEPLL));
+    ULL[1][1]=(std::exp(1./ConstResum::as*lnEPLL));
   }
   if (_ordres >=1){
-    lnEPNLL=AP.plus0/beta_0*(std::log(1.-lchi)+con._as*beta_0*LF)-Apt1g/2./beta_0/beta_0*lN*
+    lnEPNLL=AP.plus0/beta_0*(std::log(1.-lchi)+ConstResum::as*beta_0*LF)-Apt1g/2./beta_0/beta_0*lN*
     (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*LR);
-    lnEMNLL=AP.minus0/beta_0*(std::log(1.-lchi)+con._as*beta_0*LF)-Apt1q/2./beta_0/beta_0*lN*
+    lnEMNLL=AP.minus0/beta_0*(std::log(1.-lchi)+ConstResum::as*beta_0*LF)-Apt1q/2./beta_0/beta_0*lN*
     (beta_1/beta_0*(std::log(1.-lchi))/(1.-lchi)+beta_0*lchi/(1.-lchi)*LR);
     UNLL[0][0]=(std::exp(lnEMNLL)*(AP.gg0-AP.SS0+rad)+std::exp(lnEPNLL)*(AP.SS0-AP.gg0+rad))/(2.*rad);
     UNLL[0][1]=(std::exp(lnEPNLL)-std::exp(lnEMNLL))*AP.Sg0/rad;
@@ -249,15 +243,15 @@ void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long doub
 	    +(2.*AP.Sg0*AP.gS0+std::pow(AP.SS0-AP.gg0,2))*AP.gg1))/(beta_0*beta_0*(beta_0*beta_0-4.*AP.gS0*AP.Sg0-std::pow(AP.gg0-AP.SS0,2)));
   }
   if (_ordres >=2){
-    lnEPNNLL=AP.plus0/beta_0*(std::log(1.-lchi)+con._as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*LR+beta_0*LF)
-    +con._as*con._as*(-0.5*beta_0*beta_0*LR*LR+0.5*beta_0*beta_0*std::pow(-LF+LR,2)+LF*beta_1))
-    -con._as*Apt1g/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
+    lnEPNNLL=AP.plus0/beta_0*(std::log(1.-lchi)+ConstResum::as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*LR+beta_0*LF)
+    +ConstResum::as*ConstResum::as*(-0.5*beta_0*beta_0*LR*LR+0.5*beta_0*beta_0*std::pow(-LF+LR,2)+LF*beta_1))
+    -ConstResum::as*Apt1g/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
     -beta_1*beta_1*std::pow(std::log(1.-lchi),2))/(2.*beta_0*beta_0*std::pow(1.-lchi,2))
     +LR*(beta_1*(2.-lchi)*lchi-beta_1*std::log(1.-lchi))/std::pow(1.-lchi,2)+beta_0*beta_0*LR*LR*(-2.+lchi)*lchi/(2.*std::pow(1.-lchi,2))
     );
-    lnEMNNLL=AP.minus0/beta_0*(std::log(1.-lchi)+con._as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*LR+beta_0*LF)
-      +con._as*con._as*(-0.5*beta_0*beta_0*LR*LR+0.5*beta_0*beta_0*std::pow(-LF+LR,2)+LF*beta_1))
-    -con._as*Apt1q/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
+    lnEMNNLL=AP.minus0/beta_0*(std::log(1.-lchi)+ConstResum::as*(beta_1/beta_0*(std::log(1.-lchi)/(1.-lchi))+beta_0*lchi/(1.-lchi)*LR+beta_0*LF)
+      +ConstResum::as*ConstResum::as*(-0.5*beta_0*beta_0*LR*LR+0.5*beta_0*beta_0*std::pow(-LF+LR,2)+LF*beta_1))
+    -ConstResum::as*Apt1q/2./beta_0/beta_0*lN*((2.*(beta_1*beta_1-beta_0*beta_2)*lchi+2.*beta_1*beta_1*std::log(1.-lchi)
     -beta_1*beta_1*std::pow(std::log(1.-lchi),2))/(2.*beta_0*beta_0*std::pow(1.-lchi,2))
     +LR*(beta_1*(2.-lchi)*lchi-beta_1*std::log(1.-lchi))/std::pow(1.-lchi,2)+beta_0*beta_0*LR*LR*(-2.+lchi)*lchi/(2.*std::pow(1.-lchi,2))
     );
@@ -269,35 +263,32 @@ void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long doub
   return;
 }
 
-std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long double> N, std::complex<long double> b, ConstResum cc){
+std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long double> N, std::complex<long double> lchi){
   /* channel legends
    * 0 all channels
    * 1 gg only
    * 2 gq only
    * 3 qq only (means all flavours since Higgs resummation is flavour blind)
    */
-  con=cc;
   const std::complex<long double> Nbar= N*std::exp(EulerGamma);
-  const std::complex<long double> bbar= b/2.*std::exp(EulerGamma);
-  const std::complex<long double> chi= Nbar*Nbar+bbar*bbar;
-  const std::complex<long double> LC= std::log(chi);
-  const std::complex<long double> lchi= con._as*beta_0*LC;
-  const std::complex<long double> lN=con._as*beta_0*std::log(Nbar*Nbar);
-  const long double LR=std::log(con._Q*con._Q/std::pow(con._MUR,2.));
-  const long double LF=std::log(con._Q*con._Q/std::pow(con._MUF,2.));
+  const std::complex<long double> LC= lchi/ConstResum::as/beta_0;
+  const std::complex<long double> lN=2.*ConstResum::as*beta_0*std::log(Nbar);
+  const long double LR=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUR,2.));
+  const long double LF=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUF,2.));
   std::complex<long double> RggNLL,RggNNLL,RgqNLL;
   std::vector<std::complex<long double> > ris;
-  ComputeEvolution(N,b);
+  ComputeEvolution(N,lchi);
   gsl_sf_result redilog,imdilog;
-  long double r=std::abs(Nbar*Nbar/chi);
-  long double theta=std::arg(Nbar*Nbar/chi);
+  long double r=std::abs(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
+  long double theta=std::arg(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
   std::complex<long double> risdilog(redilog.val,imdilog.val);
+  //std::complex<long double> risdilog(0.,0);
   //LL resummation
   switch(_ordres){
     case(0):{
       if ((_channel==0)||(_channel==1)){
-	ris.push_back(std::pow(ULL[1][1],2)*Sudakov_g(N,b));
+	ris.push_back(std::pow(ULL[1][1],2)*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       ris.push_back((0.,0.));
@@ -308,24 +299,26 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
       RggNLL=std::exp(1./2./beta_0/beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g)*lchi/(1.-lchi));
       if((_channel==0)||(_channel==1)){
 	ris.push_back((std::pow(RggNLL*UNLL[1][1],2)
-	+con._as*((Hpt1g+Apt1g*risdilog-2.*beta_0*LR)*std::pow(ULL[1][1],2)))*Sudakov_g(N,b));
+	+ConstResum::as*((Hpt1g+Apt1g*risdilog-2.*beta_0*LR)*std::pow(ULL[1][1],2)))*Sudakov_g(N,lchi));
+	//ris.push_back((std::pow(RggNLL*UNLL[1][1],2)
+	//um::as*((Hpt1g-2.*beta_0*LR)*std::pow(ULL[1][1],2)))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       if((_channel==0)||(_channel==2)){
 	ris.push_back((std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]
-	+con._as*(Hgggq1(N)*ULL[1][1]*ULL[0][0]-std::pow(ULL[1][1],2)*V1[1][0]
-	+ULL[1][1]*ULL[0][0]*V1[1][0]))*Sudakov_g(N,b));
+	+ConstResum::as*(Hgggq1(N)*ULL[1][1]*ULL[0][0]-std::pow(ULL[1][1],2)*V1[1][0]
+	+ULL[1][1]*ULL[0][0]*V1[1][0]))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       if((_channel==0)||(_channel==3)){
-	ris.push_back((std::pow(RggNLL*UNLL[1][0],2))*Sudakov_g(N,b));
+	ris.push_back((std::pow(RggNLL*UNLL[1][0],2))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       break;
     }
     case(2):{
       RggNLL=std::exp(1./2./beta_0/beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g)*lchi/(1.-lchi));
-      RggNNLL=std::exp(con._as*(V1[1][1]*(lchi/(1.-lchi)-con._as*beta_0*LF)
+      RggNNLL=std::exp(ConstResum::as*(V1[1][1]*(lchi/(1.-lchi)-ConstResum::as*beta_0*LF)
       -1./std::pow(beta_0,3)*(beta_1*beta_1/2./beta_0*Apt1g-beta_2*Apt1g/2.-beta_1*Apt2g/2.+beta_0*Apt3g/2.)*lN
       *(2.-lchi)*lchi/(2.*std::pow(1.-lchi,2))+1./2./beta_0*(Apt2g-beta_1/beta_0*Apt1g)*lN*lchi*(2.-lchi)/std::pow(1.-lchi,2)*LR
       -beta_1*(1./2./beta_0/beta_0*lN*(Apt2g-beta_1/beta_0*Apt1g))/beta_0*std::log(1.-lchi)/std::pow(1.-lchi,2)
@@ -333,27 +326,27 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
       RgqNLL=std::exp(-std::log(1.-lchi));
       if((_channel==0)||(_channel==1)){
 	ris.push_back((std::pow(RggNNLL*UNNLL[1][1],2)
-	+con._as*(2.*Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][1]+(Hpt1g+Apt1g*risdilog)*std::pow(RggNLL*UNLL[1][1],2)
+	+ConstResum::as*(2.*Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][1]+(Hpt1g+Apt1g*risdilog)*std::pow(RggNLL*UNLL[1][1],2)
 	+2.*RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][1]*V1[1][0]-2.*RggNLL*RggNLL*UNLL[1][1]*UNLL[1][0]*V1[0][1]
-	-2.*std::pow(RggNLL*UNLL[1][1],2)*beta_0*LR)+con._as*con._as*((Hggggreg2(N)+Hpt2g-3.*beta_0*(Hpt1g+Apt1g*risdilog)*LR
-	-2.*beta_1*LR+3.*beta_0*beta_0*LR*LR)*std::pow(ULL[1][1],2)))*Sudakov_g(N,b));
+	-2.*std::pow(RggNLL*UNLL[1][1],2)*beta_0*LR)+ConstResum::as*ConstResum::as*((Hggggreg2(N)+Hpt2g-3.*beta_0*(Hpt1g+Apt1g*risdilog)*LR
+	-2.*beta_1*LR+3.*beta_0*beta_0*LR*LR)*std::pow(ULL[1][1],2)))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       if((_channel==0)||(_channel==2)){
-	ris.push_back((std::pow(RggNNLL,2)*UNNLL[1][1]*UNNLL[1][0]+con._as*(Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][0]
+	ris.push_back((std::pow(RggNNLL,2)*UNNLL[1][1]*UNNLL[1][0]+ConstResum::as*(Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][0]
 	+std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]*V1[1][1]+(Hpt1g+risdilog*Apt1g)*std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]
 	  -std::pow(RggNLL*UNLL[1][1],2)*V1[1][0]+RggNLL*RgqNLL*UNLL[1][1]*UNLL[0][0]*V1[1][0]-std::pow(RggNLL*UNLL[1][0],2)*V1[0][1]
 	  -std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]*V1[0][0]-2.*beta_0*std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]*LR)
-	+con._as*con._as*(Hgggq2(N)*ULL[1][1]*ULL[0][0]
-	-3.*Hgggq1(N)*beta_0*ULL[1][1]*ULL[0][0]*LR-ULL[1][1]*ULL[0][0]*V1[1][0]*beta_0*LF))*Sudakov_g(N,b));
+	+ConstResum::as*ConstResum::as*(Hgggq2(N)*ULL[1][1]*ULL[0][0]
+	-3.*Hgggq1(N)*beta_0*ULL[1][1]*ULL[0][0]*LR-ULL[1][1]*ULL[0][0]*V1[1][0]*beta_0*LF))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       if((_channel==0)||(_channel==3)){
-	ris.push_back((std::pow(RggNNLL*UNNLL[1][0],2)+2.*con._as*(Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][0]*UNLL[0][0]
+	ris.push_back((std::pow(RggNNLL*UNNLL[1][0],2)+2.*ConstResum::as*(Hgggq1(N)*RggNLL*RgqNLL*UNLL[1][0]*UNLL[0][0]
 	+(Hpt1g+Apt1g*risdilog)*std::pow(RggNLL*UNLL[1][0],2)+std::pow(RggNLL*UNLL[1][0],2)*V1[1][1]
 	  -std::pow(RggNLL,2)*UNLL[1][1]*UNLL[1][0]*V1[1][0]+RggNLL*RgqNLL*UNLL[1][0]*UNLL[0][0]*V1[1][0]
 	  -std::pow(RggNLL*UNLL[1][0],2)*V1[0][0]-2.*beta_0*LR*std::pow(RggNLL*UNLL[1][0],2))
-	+con._as*con._as*(Hggqq2(N)*std::pow(ULL[0][0],2)))*Sudakov_g(N,b));
+	+ConstResum::as*ConstResum::as*(Hggqq2(N)*std::pow(ULL[0][0],2)))*Sudakov_g(N,lchi));
       }
       else ris.push_back((0.,0.));
       break;
@@ -362,26 +355,26 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
   return ris; 
 }
 
-std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long double> N, std::complex<long double> b, ConstResum cc){
+std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long double> N, std::complex<long double> b){
   /* channel legends
    * 0 all channels
    * 1 gg only
    * 2 gq only
    * 3 qq only (means all flavours since Higgs resummation is flavour blind)
    */
-  con=cc;
   const std::complex<long double> Nbar= N*std::exp(EulerGamma);
   const std::complex<long double> bbar= b/2.*std::exp(EulerGamma);
   const std::complex<long double> chi= Nbar*Nbar+bbar*bbar;
   const std::complex<long double> LC= std::log(chi);
   const std::complex<long double> LN=std::log(Nbar*Nbar);
-  const long double LR=std::log(con._Q*con._Q/std::pow(con._MUR,2.));
-  const long double LF=std::log(con._Q*con._Q/std::pow(con._MUF,2.));
+  const long double LR=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUR,2.));
+  const long double LF=std::log(ConstResum::Q*ConstResum::Q/std::pow(ConstResum::MUF,2.));
   gsl_sf_result redilog,imdilog;
-  long double r=std::abs(Nbar*Nbar/chi);
-  long double theta=std::arg(Nbar*Nbar/chi);
+  long double r=std::abs(std::exp(LN-LC));
+  long double theta=std::arg(std::exp(LN-LC));
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
   std::complex<long double> risdilog(redilog.val,imdilog.val);
+  //std::complex<long double> risdilog(0.,0);
   AP.ComputeGamma(N,1);
   
   std::vector<std::complex<long double> > match;
@@ -397,15 +390,15 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
 	}
 	case(1):{
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN));
+	  match.push_back(1.+ConstResum::as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN));
 	  else match.push_back((0.,0.));
 	  match.push_back((0.,0.));
 	  match.push_back((0.,0.));
 	}
 	case(2):{
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN)
-	  +con._as*con._as*(1./8.*Apt1g*Apt1g*std::pow(LC,4)-0.5*Apt1g*Apt1g*std::pow(LC,3)*LN
+	  match.push_back(1.+ConstResum::as*(-Apt1g*LC*LC/2.+Apt1g*LC*LN)
+	  +ConstResum::as*ConstResum::as*(1./8.*Apt1g*Apt1g*std::pow(LC,4)-0.5*Apt1g*Apt1g*std::pow(LC,3)*LN
 	  +0.5*Apt1g*Apt1g*LC*LC*LN*LN-1./3.*Apt1g*std::pow(LC,3)*beta_0+0.5*beta_0*Apt1g*LC*LC*LN));
 	  else match.push_back((0.,0.));
 	  match.push_back((0.,0.));
@@ -424,25 +417,25 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
 	}
 	case(1):{
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*LF*AP.gg0));
+	  match.push_back(1.+ConstResum::as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*LF*AP.gg0));
 	  else match.push_back((0.,0.));
 	  if ((_channel==0)||(_channel==2))
-	  match.push_back(con._as*(Hgggq1(N)-LC*AP.gS0+LF*AP.gS0));
+	  match.push_back(ConstResum::as*(Hgggq1(N)-LC*AP.gS0+LF*AP.gS0));
 	  else match.push_back((0.,0.));
 	  match.push_back((0.,0.));
 	}
 	case(2):{
 	  std::complex<long double> rad=std::sqrt((AP.gg0-AP.SS0)*(AP.gg0-AP.SS0)+4.*AP.gS0*AP.Sg0);
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*LF*AP.gg0)
-	  +con._as*con._as*(Apt1g*Apt1g*std::pow(LC,4)/8.+1./6.*Apt1g*std::pow(LC,3)*(3.*Bpt1g-2.*beta_0+6.*AP.gg0)+LF*LF*(2.*AP.gg0*AP.gg0+AP.gS0*AP.Sg0)
+	  match.push_back(1.+ConstResum::as*((Hpt1g+Apt1g*risdilog)-Apt1g*LC*LC/2.-2.*LR*beta_0+LC*(-Bpt1g-2.*AP.gg0)+2.*LF*AP.gg0)
+	  +ConstResum::as*ConstResum::as*(Apt1g*Apt1g*std::pow(LC,4)/8.+1./6.*Apt1g*std::pow(LC,3)*(3.*Bpt1g-2.*beta_0+6.*AP.gg0)+LF*LF*(2.*AP.gg0*AP.gg0+AP.gS0*AP.Sg0)
 	  +0.5*LC*LC*(-Apt2g+Bpt1g*Bpt1g-Apt1g*Hpt1g-Bpt1g*beta_0+3.*Apt1g*LR*beta_0+4.*Bpt1g*AP.gg0-2.*Apt1g*LF*AP.gg0-2.*beta_0*AP.gg0+4.*AP.gg0*AP.gg0
 	  +2.*AP.gS0*AP.Sg0-Apt1g*Apt1g*risdilog)+LC*((-2.*beta_0*(-Apt2g*LN+4.*LF*AP.gg0*AP.gg0+Bpt1g*(Hpt1g-2*LR*beta_0+2.*LF*AP.gg0)+2.*LF*AP.gS0*AP.Sg0)
 	  *rad-Apt1q*LN*(LR*beta_0*beta_0-beta_1)*(-AP.gg0+AP.SS0+rad)-Apt1g*LN*(-2.*Hpt1g*beta_0*rad+LR*beta_0*beta_0*(AP.gg0-AP.SS0+5.*rad)
 	  +beta_1*(-AP.gg0+AP.SS0+rad)))/(2.*beta_0*rad)+Apt1g*(-Bpt1g+Apt1g*LN)*risdilog)));
 	  else match.push_back((0.,0.));
 	  if ((_channel==0)||(_channel==2))
-	  match.push_back(con._as*(Hgggq1(N)-LC*AP.gS0+LF*AP.gS0)+con._as*con._as*(0.5*Apt1g*std::pow(LC,3)*AP.gS0+0.5*LF*LF*AP.gS0*(3.*AP.gg0+AP.SS0)
+	  match.push_back(ConstResum::as*(Hgggq1(N)-LC*AP.gS0+LF*AP.gS0)+ConstResum::as*ConstResum::as*(0.5*Apt1g*std::pow(LC,3)*AP.gS0+0.5*LF*LF*AP.gS0*(3.*AP.gg0+AP.SS0)
 	  +0.5*LC*LC*(-Apt1g*(Hgggq1(N)+LF*AP.gS0)+AP.gS0*(2.*Bpt1g-beta_0+3.*AP.gg0+AP.SS0))+0.5*LC*(-6.*LF*AP.gg0*AP.gS0-2.*Bpt1g*(Hgggq1(N)+LF*AP.gS0)
 	  -(Apt1g*LN*LR*beta_0*AP.gS0-Apt1q*LN*LR*beta_0*AP.gS0-Apt1g*LN*beta_1/beta_0*AP.gS0+Apt1q*LN*beta_1/beta_0*AP.gS0)/rad
 	  +1./beta_0/beta_0*((Apt1g+Apt1q)*Hgggq1(N)*LN*beta_0*beta_0+(-Apt1g+Apt1q)*LN*beta_1*AP.gS0-2.*LF*beta_0*beta_0*AP.gS0*AP.SS0)
@@ -450,7 +443,7 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
 	  +beta_0*(AP.gg1*AP.gS0-AP.gg0*AP.gS1+AP.gS1*AP.SS0-AP.gS0*AP.SS1)))/(beta_0*(beta_0*beta_0-4.*AP.gS0*AP.Sg0-(AP.gg0-AP.SS0)*(AP.gg0-AP.SS0))))));
 	  else match.push_back((0.,0.));
 	  if ((_channel==0)||(_channel==3))
-	  match.push_back(con._as*con._as*(LC*LC*AP.gS0*AP.gS0-2.*LC*LF*AP.gS0*AP.gS0+LF*LF*AP.gS0*AP.gS0));
+	  match.push_back(ConstResum::as*ConstResum::as*(LC*LC*AP.gS0*AP.gS0-2.*LC*LF*AP.gS0*AP.gS0+LF*LF*AP.gS0*AP.gS0));
 	  else match.push_back((0.,0.));
 	}
       }
@@ -466,16 +459,16 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
 	}
 	case(1):{
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*LR*beta_0-2.*LC*AP.gg0+2.*LF*AP.gg0+Apt1g*risdilog));
+	  match.push_back(1.+ConstResum::as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*LR*beta_0-2.*LC*AP.gg0+2.*LF*AP.gg0+Apt1g*risdilog));
 	  if ((_channel==0)||(_channel==2))
-	  match.push_back(con._as*(Hgggq1(N)+(-LC+LF)*AP.gS0));
+	  match.push_back(ConstResum::as*(Hgggq1(N)+(-LC+LF)*AP.gS0));
 	  else match.push_back((0.,0.));
 	  match.push_back((0.,0.));
 	}
 	case(2):{
 	  if ((_channel==0)||(_channel==1))
-	  match.push_back(1.+con._as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*LR*beta_0-2.*LC*AP.gg0+2.*LF*AP.gg0+Apt1g*risdilog)
-	  +con._as*con._as*((Hggggreg2(N)+Hpt2g)-Bpt2g*LC-Apt2g*LC*LC/2.+Bpt1g*Bpt1g*LC*LC/2.-0.5*Apt1g*Hpt1g*LC*LC
+	  match.push_back(1.+ConstResum::as*(Hpt1g-Bpt1g*LC-Apt1g*LC*LC/2.-2.*LR*beta_0-2.*LC*AP.gg0+2.*LF*AP.gg0+Apt1g*risdilog)
+	  +ConstResum::as*ConstResum::as*((Hggggreg2(N)+Hpt2g)-Bpt2g*LC-Apt2g*LC*LC/2.+Bpt1g*Bpt1g*LC*LC/2.-0.5*Apt1g*Hpt1g*LC*LC
 	  +Apt1g*Apt1g/8.*std::pow(LC,4)-Dpt2g*LN/2.-1./3.*Apt1g*beta_0*std::pow(LC,3)-3.*Hpt1g*LR*beta_0+3./2.*Apt1g*LC*LC*LR*beta_0
 	  +3.*LR*LR*beta_0*beta_0-2.*LR*beta_1-2.*Hpt1g*LC*AP.gg0+Apt1g*std::pow(LC,3)*AP.gg0+2.*Hpt1g*LF*AP.gg0
 	  -Apt1g*LC*LC*LF*AP.gg0-LC*LC*beta_0*AP.gg0+std::pow(-LF+LR,2)*beta_0*AP.gg0+6.*LC*LR*beta_0*AP.gg0-4.*LF*LR*beta_0*AP.gg0
@@ -484,14 +477,14 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
 	  (-2.*Hgggq1(N)+(LC-LF)*AP.gS0)*AP.Sg0-0.5*Apt1g*(2.*Bpt1g*LC+Apt1g*LC*LC-2.*LN*beta_0+6.*LR*beta_0+4.*LC*AP.gg0-4.*LF*AP.gg0)*risdilog));
 	  else match.push_back((0.,0.));
 	  if ((_channel==0)||(_channel==2))
-	  match.push_back(con._as*(Hgggq1(N)+(LF-LC)*AP.gS0)+con._as*con._as*0.5*(2.*Hgggq2(N)+2.*Hgggq1(N)*LC*beta_0-6.*Hgggq1(N)*LR*beta_0-2.*Hgggq1(N)*LC*AP.gg0
+	  match.push_back(ConstResum::as*(Hgggq1(N)+(LF-LC)*AP.gS0)+ConstResum::as*ConstResum::as*0.5*(2.*Hgggq2(N)+2.*Hgggq1(N)*LC*beta_0-6.*Hgggq1(N)*LR*beta_0-2.*Hgggq1(N)*LC*AP.gg0
 	  +2.*Hgggq1(N)*LF*AP.gg0-2.*Hpt1g*LC*AP.gS0+2.*Hpt1g*LF*AP.gS0-LC*LC*beta_0*AP.gS0+std::pow(-LF+LR,2)*beta_0*AP.gS0+6.*LC*LR*beta_0*AP.gS0
 	  -4.*LF*LR*beta_0*AP.gS0-LR*LR*beta_0*AP.gS0+3.*LC*LC*AP.gg0*AP.gS0-6.*LC*LF*AP.gg0*AP.gS0+3.*LF*LF*AP.gg0*AP.gS0+2.*Bpt1g*LC*(-Hgggq1(N)
 	  +(LC-LF)*AP.gS0)+Apt1g*LC*LC*(-Hgggq1(N)+(LC-LF)*AP.gS0)-2.*LC*AP.gS1+2.*LF*AP.gS1+(LC-LF)*(-2.*Hgggq1(N)+(LC-LF)*AP.gS0)*AP.SS0
 	  +2.*Apt1g*(LF-LC)*AP.gS0*risdilog));
 	  else match.push_back((0.,0.));
 	  if ((_channel==0)||(_channel==3))
-	  match.push_back(con._as*con._as*(Hggqq2(N)+(LC-LF)*AP.gS0*(-2.*Hgggq1(N)+(LC-LF)*AP.gS0)));
+	  match.push_back(ConstResum::as*ConstResum::as*(Hggqq2(N)+(LC-LF)*AP.gS0*(-2.*Hgggq1(N)+(LC-LF)*AP.gS0)));
 	  else match.push_back((0.,0.));
 	}
       }

@@ -13,6 +13,7 @@
 #include "PhisConst.h"
 
 using namespace std;
+using namespace ConstResum;
 
 //WARNING: N-1 messo nella parte hard ma non nell'evoluzione... non so cosa sia meglio controllare alla fine... 
 //In più matching con il NNLO non implementato ancora
@@ -20,12 +21,12 @@ using namespace std;
 
 class Joint{
   public: 
-    Joint(const int ordres, const int ordmatch, int channel, bool Wilson, ConstResum cc, long double Nc=3., long double Nf=5.);
+    Joint(const int ordres, const int ordmatch, int channel, bool Wilson, long double Nc=3., long double Nf=5.);
     virtual ~Joint();
     
     //Return a vector of three components in the case of Higgs which is flavour blind (gg,gq,qq)
-    std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> b, ConstResum cc);
-    std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b, ConstResum cc);
+    std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> lchi);
+    std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b);
     
     void SetOrdRes(int ordres);
     void SetOrdMatch(int ordmatch);
@@ -34,8 +35,6 @@ class Joint{
    
   private:
     int _ordres,_ordmatch;
-    //Scale and alpha_s+
-    ConstResum con;
     //Important Constants
     long double _Nc,_Nf;
     long double _Ca, _Cf;
@@ -75,10 +74,10 @@ class Joint{
     std::complex<long double> Hggqq2(std::complex<long double> NN);
     
      //Sudakov
-    std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> b);
+    std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> lchi);
     
     //Evolution
-    void ComputeEvolution(std::complex<long double> N, std::complex<long double> b);
+    void ComputeEvolution(std::complex<long double> N, std::complex<long double> lchi);
     
     
     long double Apt1q;

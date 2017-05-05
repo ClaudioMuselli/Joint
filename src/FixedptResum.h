@@ -14,15 +14,18 @@
 #include "PhisConst.h"
 
 using namespace std;
+using namespace ConstResum;
+
+//FIXME IMPLEMENTATION OF RUNNING SCALES
 
 
 class FixedptResum {
 public:
-    FixedptResum(const int ordres, const int ordmatch, int channel, bool Wilson, ConstResum cc, long double Nc=3., long double Nf=5.);
+    FixedptResum(const int ordres, const int ordmatch, int channel, bool Wilson, long double Nc=3., long double Nf=5.);
     virtual ~FixedptResum();
     
-    std::vector<std::complex<long double>> ComputeFixedptResum(std::complex<long double> N, long double xp,ConstResum cc);
-    std::vector<std::complex<long double>> ComputeMatching(std::complex<long double> N, long double xp, ConstResum cc);
+    std::vector<std::complex<long double>> ComputeFixedptResum(std::complex<long double> N, long double xp);
+    std::vector<std::complex<long double>> ComputeMatching(std::complex<long double> N, long double xp);
   
     //Higgs Cross section
     //LO cross section
@@ -46,8 +49,6 @@ public:
   
 private:
     int _ordres,_ordmatch;
-    //Scale and alpha_s
-    ConstResum con;
     //Important Constants
     long double _Nc, _Nf;
     long double _Ca, _Cf;

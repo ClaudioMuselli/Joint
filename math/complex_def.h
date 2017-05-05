@@ -113,6 +113,7 @@ std::complex<long double> Gamma_inv (const std::complex<long double> &z);
 
 std::complex<long double> LBesselJ(long double k, std::complex<long double> z);
 std::complex<long double> LBesselK(long double k, std::complex<long double> z);
+std::complex<long double> CBesselK(std::complex<long double> nu, std::complex<long double> z);
 
 //Works only if abs(z)<1
 std::complex<long double> Hyp2F1 (std::complex<long double> a,std::complex<long double> b, std::complex<long double> c,std::complex<long double> z);

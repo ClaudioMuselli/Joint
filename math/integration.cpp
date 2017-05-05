@@ -15,10 +15,10 @@ double integration::GSL (double (func)(double, void *), double min, double max, 
 }
 
 
-int integration::CUBA( int method, int (Func)(int*, double *, int *, double *, void *), int ndim, int ncomp, double prec, double **res,int *fail, double **error, double **prob, void * par){
+int integration::CUBA( int method, int (Func)(int*, double *, int *, double *, void *), int ndim, int ncomp, 
+		       double prec, double **res,int *fail, double **error, double **prob, void * par, int print){
   static const double epsabs=1e-15;
   static const int verbose=0;
-  static const int print=0;
   static const int last=4;
   static const int seed=0;
   static const int mineval=0;
@@ -133,6 +133,55 @@ int integration::PolynomialFit(int ncoeff, int ndat, double *xpoint, double *ypo
   return 0;
 }
 
+int integration::RichardsonExtrapolation(int ncoeff, double hstart, double* ypoint, double* ris, double* errris) {
+  double res=0.,errres=0.,res2=0.;
+  std::vector<std::vector<double>> A1,A2;
+  std::vector<double> yv;
+  if (ncoeff==1){
+    *ris=ypoint[0];
+    *errris=hstart;
+    return 0;
+  }
+  for (int i=0;i<ncoeff;i++){
+    yv.push_back(ypoint[i]);
+  }
+  A1.push_back(yv);
+  for (int i=1;i<ncoeff;i++){
+    std::vector<double> mpoint;
+    for (int j=0;j<ncoeff-i;j++){
+      mpoint.push_back((std::pow(2.,i)*A1[i-1][j]-A1[i-1][j+1])/(std::pow(2.,i)-1.));
+    }
+    A1.push_back(mpoint);
+  }
+  res=A1[ncoeff-1.][0];
+  for (int i=1;i<ncoeff;i++){
+    yv.push_back(ypoint[i]);
+  }
+  A2.push_back(yv);
+  for (int i=1;i<ncoeff-1;i++){
+    std::vector<double> mpoint;
+    for (int j=0;j<ncoeff-i-1;j++){
+      mpoint.push_back((std::pow(2,i)*A2[i-1][j]-A2[i-1][j+1])/(std::pow(2.,i)-1.));
+    }
+    A2.push_back(mpoint);
+  }
+  res2=A2[ncoeff-2][0];
+  *ris=res;
+  double errmax=std::pow(hstart*std::pow(2.,ncoeff-1.),ncoeff);
+  if (hstart*std::pow(2.,ncoeff-1.)>1.){
+    std::cout << "WARNING: error may be not attendible; decrease hstart" << std::endl;
+  }
+  *errris=std::max(errmax,std::abs(res-res2));
+  return 0;
+  
+  
+  
+}
+
+
+
+
+
 struct InverseTotal{
    long double xp;
    long double tau;
@@ -156,8 +205,8 @@ int IT(int* ndim, double * x, int* ncomp, double* y, void *p){
 }
 
 int integration::InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),
-						     long double xp, long double tau, void *pp, double *ris, double *error, double *chi,
-						     long double N0, int nump, double precint, double epstart, double eprate){
+						     long double xp, long double tau, void *pp, double *ris, double *error, double *chi,bool verb,
+						     long double N0, int nump, double precint, double epstart, double eprate, bool fit){
   InverseTotal ITC;
   ITC.xp=xp;
   ITC.tau=tau;
@@ -166,7 +215,7 @@ int integration::InverseMellinBessel(int method, std::complex<long double> (Func
   ITC.bc=0.;
   ITC.param=pp;
   int nn=nump;
-  bool verbose=true;
+  bool verbose=verb;
   double *epsilon=NULL,**res=NULL, prec=1e-14, *yy=NULL, *erryy=NULL;
   int fail; double **err=NULL, **prob=NULL;
   res=new double*[nn];
@@ -180,6 +229,7 @@ int integration::InverseMellinBessel(int method, std::complex<long double> (Func
   epsilon=new double[nn];
   double epsilonstart=epstart,rate=eprate;
   epsilon[0]=epsilonstart;
+  if (fit){
   for (int i=0;i<nn;i++){
     ITC.epsilon=epsilon[i];
     CUBA(method,IT,2,1,prec,&res[i],&fail,&err[i],&prob[i],&ITC);
@@ -187,7 +237,18 @@ int integration::InverseMellinBessel(int method, std::complex<long double> (Func
       i--;
       epsilon[i+1]+=rate;
     }
-    else epsilon[i+1]=epsilon[i]+rate;
+   else  epsilon[i+1]=epsilon[i]+rate;
+  }
+  }
+  else{
+    for (int i=0;i<nn;i++){
+      ITC.epsilon=epsilon[i];
+      CUBA(method,IT,2,1,prec,&res[i],&fail,&err[i],&prob[i],&ITC);
+      if (std::abs(err[i][0]) > precint){
+	std::cout << "WARNING: error out of precision for ep= " << epsilon[i] << std::endl;
+      }
+      epsilon[i+1]=epsilon[i]*2.;
+    }
   }
   //print per prova poi cancellare
   yy=new double[nn];
@@ -199,6 +260,7 @@ int integration::InverseMellinBessel(int method, std::complex<long double> (Func
     std::cout << "epsilon= " << epsilon[i] << " integral= " << yy[i] << " +- "<< erryy[i] << std::endl;
     }
   }
+  if (fit){
   double *co=NULL,*errco=NULL,chisq;
   integration::PolynomialFit(3,nn,epsilon,yy,erryy, &co, &errco,&chisq);
   if (verbose){
@@ -210,6 +272,15 @@ int integration::InverseMellinBessel(int method, std::complex<long double> (Func
   *error=errco[0];
   *chi=chisq;
   return 0; 
+  }
+  else {
+    double res=0., errres=0.;
+    integration::RichardsonExtrapolation(nump,epsilon[0],yy,&res,&errres);
+    *ris=res;
+    *error=errres;
+    *chi=0.;
+    return 0;
+  }
 }
 
 

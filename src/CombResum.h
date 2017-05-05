@@ -15,16 +15,19 @@
 #include <functional>
 #include <vector>
 #include "PhisConst.h"
+#include "Borel.h"
 
 using namespace std;
 using namespace sp_bessel;
 using namespace LHAPDF;
 using namespace integration;
+using namespace ConstResum;
 
 
 
 
 //WARNING::CONTROLLARE CHE CI SIA N-1 GIUSTO!!!!
+//FIXME:: WILSON NOT IMPLEMENTED
  
   
   
@@ -42,15 +45,20 @@ using namespace integration;
     void SetOrdRes(int ordres);
     void SetOrdMatch(int ordmatch);
     
-    long double  ResummedCrossSection(long double CMS, long double xp);
-    std::vector<long double> ResummedCrossSection (long double CMS, std::vector<long double> xp);
-    std::vector<std::vector<long double>> ResummedCrossSection (std::vector<long double> CMS, std::vector<long double> xp);
+    long double  ResummedCrossSection(long double CMS, long double xp, int matching);
+    std::vector<long double> ResummedCrossSection (long double CMS, std::vector<long double> xp, int matching);
+    std::vector<std::vector<long double>> ResummedCrossSection (std::vector<long double> CMS, std::vector<long double> xp, int matching);
     
     long double  MatchedCrossSection(long double CMS, long double xp);
     std::vector<long double> MatchedCrossSection (long double CMS, std::vector<long double> xp);
     std::vector<std::vector<long double>> MatchedCrossSection (std::vector<long double> CMS, std::vector<long double> xp);
     
+    //Core Functions
     
+    std::complex<long double> JointPartRes(std::complex<long double> N, std::complex<long double> b, long double xp);
+    std::complex<long double> FixptPartRes(std::complex<long double> N, long double xp);
+    std::complex<long double> JointPartMatch(std::complex<long double> N, std::complex<long double> b, long double xp);
+    std::complex<long double> FixptPartMatch(std::complex<long double> N, long double xp);
     
   private:
     Luminosity _Lumi;
@@ -59,10 +67,6 @@ using namespace integration;
     
     std::function<std::complex<long double>(std::complex<long double>, long double)> _MatchFun;
     
-    ConstResum cc;
-    
-    const long double Gf = 0.00001166364;// Fermi constant in GeV^-2
-    const long double GeVtopb = 389379304.;// GeV^-2 to pb conversion factor == (hc)^2 
     
     long double _CMS;
     int _ordres,_ordmatch;
@@ -75,20 +79,15 @@ using namespace integration;
     //Important constant
     
     long double beta_0, beta_1, beta_2;
-    long double alpha_Mz;
-    long double Mz;
+    const long double alpha_Mz=0.118;
+    const long double Mz=91.1876;
     
     long double _Nc,_Nf;
     long double _Ca, _Cf;
     
     
     
-    //Core Functions
     
-    std::complex<long double> JointPartRes(std::complex<long double> N, std::complex<long double> b, long double xp);
-    std::complex<long double> FixptPartRes(std::complex<long double> N, long double xp);
-    std::complex<long double> JointPartMatch(std::complex<long double> N, std::complex<long double> b, long double xp);
-    std::complex<long double> FixptPartMatch(std::complex<long double> N, long double xp);
     
   };
 

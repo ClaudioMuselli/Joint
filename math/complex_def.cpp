@@ -416,6 +416,45 @@ std::complex<long double> LBesselK(long double k, std::complex<long double> z){
   return res;
 }
 
+std::complex<long double> CBesselK(std::complex<long double> nu, std::complex<long double> z){
+  std::complex<long double> sum,error;
+  const std::complex<long double> Gnu=std::exp(LogGamma(nu))*std::pow(z/2.,-nu);
+  const std::complex<long double> Gmnu=std::exp(LogGamma(-nu))*std::pow(z/2.,nu);
+  int num=30,i;
+  long double prec=1e-10;
+  if (std::abs(z)<10.){
+    for (i=0;i<num;i++){
+      long double il=static_cast<long double> (i);
+      long double factl=static_cast<long double> (gsl_sf_fact(i));
+      error= 0.5*Gnu*(std::pow(z/2.,2.*il)*std::exp(-LogGamma(1.+il-nu)+LogGamma(1.-nu))/factl)
+      +0.5*Gmnu*(std::pow(z/2.,2.*il)*std::exp(-LogGamma(1.+il+nu)+LogGamma(1.+nu))/factl);
+      sum+=error;
+      if ((std::abs(std::real(error/sum))<prec)&&(std::abs(std::imag(error/sum))<prec)){
+	//std::cout << error << " " << sum << std::endl;
+	break;
+      }
+    }   
+  }
+  else {
+    for (i=0;i<num;i++){
+      long double il=static_cast<long double> (i);
+      long double factl=static_cast<long double> (gsl_sf_fact(i));
+      error=std::sqrt(M_PIl/(2.*z))*std::exp(-z)
+      *std::exp(LogGamma(0.5+il+nu)+LogGamma(0.5+il-nu)-LogGamma(0.5+nu)-LogGamma(0.5-nu))/factl
+      *std::pow(-1./(2.*z),il);
+      sum+=error;
+      if ((std::abs(std::real(error/sum))<prec)&&(std::abs(std::imag(error/sum))<prec)){
+	//std::cout << error << " " << sum << std::endl;
+	break;
+      }
+    }
+  }
+  if (i==num){
+      std::cout<< "WARNING:possible error of approximation" << std::endl;
+    }
+  return sum;
+}
+
 //Useful functions to evaluate Hypergeometric2F1 (see AEAE for more details)
 std::complex<long double> Gamma_ratio_diff_small_eps (const std::complex<long double> &z,const std::complex<long double> &eps)
 {
