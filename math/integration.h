@@ -31,7 +31,7 @@ namespace integration {
   extern int CUBA(int method, int (Func)(int*, double *, int*, double*, void*),
 		     int ndim,int ncomp, double prec,double **res, int *fail, double **error, double **prob,void *par, int print=0);
   
-  extern double InverseMellin_path(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, void *pp);
+  extern double InverseMellin_path(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, void *pp, long double *err);
   extern double InverseMellin_epsilon(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, void *pp);
   
   extern std::complex<long double> InverseBessel_path(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp);

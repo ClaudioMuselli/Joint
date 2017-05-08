@@ -129,7 +129,7 @@ std::complex<long double> ResCrossSecJoint(std::complex<long double> N,std::comp
   return(par.CombR->JointPartRes(N,lchi,par.xp));
 }
 
-long double CombResum::ResummedCrossSection(long double CMS, long double xp, int matching){
+long double CombResum::ResummedCrossSection(long double CMS, long double xp, int matching, long double *err){
   //Matching Function
   //matching==0 only Joint
   //matching==1 only FixedptResum
@@ -137,61 +137,59 @@ long double CombResum::ResummedCrossSection(long double CMS, long double xp, int
   std::function<std::complex<long double>(std::complex<long double>, long double)> _MatchFun2=_MatchFun;
   if (matching==0) _MatchFun=T0;
   if (matching==1) _MatchFun=T1;
-  
-  
-  
   //Fixed pt Part
-  long double FixptPart=0.;
+  long double FixptPart=0.,errFixptPart=0.;
   long double tauprime=std::pow(ConstResum::Q*(std::sqrt(1.+xp)+std::sqrt(xp))/CMS,2.);
   ptstruct Fixptpar;
   Fixptpar.xp=xp;
   Fixptpar.CombR=this;
-  FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar);
+  FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar, &errFixptPart);
   FixptPart*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
   //Joint Part
-  long double Joint=0.,errJoint=0.,chisq=0.;
-  
+  long double Joint=0.,errJoint=0.;
   Borel::BorelJointCp(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
-  //Borel::BorelJointC(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.5);
   Joint*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
   errJoint*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
-  cout << "Joint= " << Joint << " +- " << errJoint << " chisq " << chisq << endl;
+  cout << "Joint= " << Joint << " +- " << errJoint << endl;
   _MatchFun=_MatchFun2;
+  *err=errJoint+errFixptPart;
   return (FixptPart+Joint);
   
   
 }
 
-std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::vector<long double> xp,int matching){
+std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::vector<long double> xp,int matching, std::vector<long double> *err){
   //Matching Function
   //matching==0 only Joint
   //matching==1 only FixedptResum
   //matching!=0 || matching !=1 used matching function defined in CombResum
-  std::function<std::complex<long double>(std::complex<long double>, long double)> _MatchFun2=_MatchFun;
-  
+  std::function<std::complex<long double>(std::complex<long double>, long double)> _MatchFun2=_MatchFun; 
   if (matching==0) _MatchFun=T0;
   if (matching==1) _MatchFun=T1;
-
   
-  
-  //Fixed pt Part
-  std::vector<long double> ris;
+  std::vector<long double> ris,error;
   int i=0;
   for (auto pt : xp){
     std::cout << i << " " ;
-    long double FixptPart=0.;
+    //Fixed pt Part
+    long double FixptPart=0., errFixptPart=0.;
     long double tauprime=std::pow(ConstResum::Q*(std::sqrt(1.+pt)+std::sqrt(pt))/CMS,2.);
     ptstruct Fixptpar;
     Fixptpar.xp=pt;
     Fixptpar.CombR=this;
-    FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar);
-    ris.push_back(FixptPart*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
+    FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar,&errFixptPart);
+    long double Joint=0.,errJoint=0.;
+    Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
+    ris.push_back((FixptPart+Joint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
+    error.push_back((errFixptPart+errJoint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     i++;
   }
   _MatchFun=_MatchFun2;
+  *err=error;
   return ris;
 }
-std::vector<std::vector<long double>> CombResum::ResummedCrossSection(std::vector<long double> CMS, std::vector<long double> xp,int matching){
+std::vector<std::vector<long double>> CombResum::ResummedCrossSection(std::vector<long double> CMS, std::vector<long double> xp,int matching,
+  std::vector<std::vector<long double>> *err){
   //Matching Function
   //matching==0 only Joint
   //matching==1 only FixedptResum
@@ -200,25 +198,31 @@ std::vector<std::vector<long double>> CombResum::ResummedCrossSection(std::vecto
   if (matching==0) _MatchFun=T0;
   if (matching==1) _MatchFun=T1;
   
-  //Fixed pt Part
-  std::vector<std::vector<long double>> ris;
+  std::vector<std::vector<long double>> ris, error;
   int i=0;
   for (auto cms : CMS ){
     cout << i << " " ;
-    std::vector<long double> ris2;
+    std::vector<long double> ris2,error2;
     for (auto pt : xp){
-      long double FixptPart=0.;
+      //Fixed pt Part
+      long double FixptPart=0.,errFixptPart=0.;
       long double tauprime=std::pow(ConstResum::Q*(std::sqrt(1.+pt)+std::sqrt(pt))/cms,2.);
       ptstruct Fixptpar;
       Fixptpar.xp=pt;
       Fixptpar.CombR=this;
-      FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar);
-      ris2.push_back(FixptPart*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
+      FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar, &errFixptPart);
+      //Joint Part
+      long double Joint=0.,errJoint=0.;
+      Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
+      ris2.push_back((FixptPart+Joint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
+      error2.push_back((errFixptPart+errJoint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     }
     ris.push_back(ris2);
+    error.push_back(error2);
     i++;
   }
   _MatchFun=_MatchFun2;
+  *err=error;
   return ris;
 }
   

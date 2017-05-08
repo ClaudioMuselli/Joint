@@ -349,7 +349,7 @@ int IMep(int* ndim, double* x, int* ncomp, double* y,void *p){
   
 
 double integration::InverseMellin_path(int method, std::complex<long double> (Func)(std::complex<long double> , void* ), 
-				  long double tau, long double N0, long double slope, void *pp) {
+				  long double tau, long double N0, long double slope, void *pp, long double *error) {
   double *res=NULL, prec=1e-8;
   int fail; double *err=NULL, *prob=NULL;
   res=new double[1];
@@ -362,6 +362,7 @@ double integration::InverseMellin_path(int method, std::complex<long double> (Fu
   IMC.tau=tau;
   IMC.param=pp;
   CUBA(method,IM1,2,1,prec,&res,&fail,&err,&prob,&IMC);
+  *error=err[0];
   return res[0];
 }
 

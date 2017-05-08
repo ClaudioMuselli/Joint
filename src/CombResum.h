@@ -45,9 +45,10 @@ using namespace ConstResum;
     void SetOrdRes(int ordres);
     void SetOrdMatch(int ordmatch);
     
-    long double  ResummedCrossSection(long double CMS, long double xp, int matching);
-    std::vector<long double> ResummedCrossSection (long double CMS, std::vector<long double> xp, int matching);
-    std::vector<std::vector<long double>> ResummedCrossSection (std::vector<long double> CMS, std::vector<long double> xp, int matching);
+    long double  ResummedCrossSection(long double CMS, long double xp, int matching, long double *err);
+    std::vector<long double> ResummedCrossSection (long double CMS, std::vector<long double> xp, int matching, std::vector<long double> *err);
+    std::vector<std::vector<long double>> ResummedCrossSection (std::vector<long double> CMS, std::vector<long double> xp, int matching
+      , std::vector<std::vector<long double>> *err);
     
     long double  MatchedCrossSection(long double CMS, long double xp);
     std::vector<long double> MatchedCrossSection (long double CMS, std::vector<long double> xp);
