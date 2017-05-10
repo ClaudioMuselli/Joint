@@ -16,8 +16,8 @@ int main(){
   long double CMS=13000.;
   long double mH=125.09;
   stringstream ss;
-  int orderres=0;
-  ss << "graph/PlotResum_" << CMS/1000.;
+  int orderres=1;
+  ss << "graph/PlotResumFinal_" << CMS/1000.;
   switch (orderres){
     case(0):{
       ss <<"_LL.dat";
@@ -35,21 +35,29 @@ int main(){
   ofstream OUT((ss.str()).c_str());
   std::vector<long double> Joint,Fix,Matched,errJoint,errFix,errMatched;
   CombResum Com(orderres,0,0, "PDF4LHC15_nnlo_100",false);
-  int NUM=100;
+  int NUM=100.;
   //pt grid
-  long double ptstart=12.;long double ptend=250.;
-  long double rate=(ptend-ptstart)/((long double) NUM);
+  long double ptstart=2.;long double ptend=22.;
+  long double rate=(ptend-ptstart)/( 20.);
   std::vector<long double> xp;
-  for (int i=0;i<NUM;i++){
+  for (int i=0;i<20;i++){
+    xp.push_back(std::pow((ptstart+((long double) i)*rate)/mH,2));
+  }
+  ptstart=22.; ptend=250.;
+  rate=(ptend-ptstart)/( 80.);
+  for (int i=0;i<80;i++){
     xp.push_back(std::pow((ptstart+((long double) i)*rate)/mH,2));
   }
   Joint=Com.ResummedCrossSection(CMS,xp,0,&errJoint);
   Fix=Com.ResummedCrossSection(CMS,xp,1,&errFix);
   Matched=Com.ResummedCrossSection(CMS,xp,2,&errMatched);
-  for (int i=0;i<NUM;i++){
-    OUT << CMS << "\t" << xp[i] << "\t" << Joint[i] << "\t" <<errJoint[i]
-    << "\t" << Fix[i] << "\t" << errFix[i] << "\t" << Matched[i]
-     << "\t" << errMatched[i] << endl;
+  for (int i=0;i<xp.size();i++){
+    long double pt=  std::sqrt(xp[i]*mH*mH);
+    OUT << CMS << "\t" << pt << "\t" << Joint[i]*2.*pt/mH/mH << "\t" 
+    <<errJoint[i]*2.*pt/mH/mH
+    << "\t" << Fix[i]*2.*pt/mH/mH << "\t" 
+    << errFix[i]*2.*pt/mH/mH << "\t" << Matched[i]*2.*pt/mH/mH
+     << "\t" << errMatched[i]*2.*pt/mH/mH << endl;
   }
   OUT.close();
   return 0;

@@ -416,7 +416,7 @@ std::complex<long double> LBesselK(long double k, std::complex<long double> z){
   return res;
 }
 
-std::complex<long double> CBesselK(std::complex<long double> nu, std::complex<long double> z){
+std::complex<long double> CBesselK(std::complex<long double> nu, std::complex<long double> z,bool warn){
   std::complex<long double> sum,error;
   const std::complex<long double> Gnu=std::exp(LogGamma(nu))*std::pow(z/2.,-nu);
   const std::complex<long double> Gmnu=std::exp(LogGamma(-nu))*std::pow(z/2.,nu);
@@ -449,7 +449,7 @@ std::complex<long double> CBesselK(std::complex<long double> nu, std::complex<lo
       }
     }
   }
-  if (i==num){
+  if ((i==num)&&(warn==true)){
       std::cout<< "WARNING:possible error of approximation" << std::endl;
     }
   return sum;

@@ -66,6 +66,10 @@ class Luminosity {
 		inline size_t get_n(){
 		  return _n;
 		}
+
+		inline double get_alphaS(double mur){
+		  return (_PDF->alphasQ(mur));
+		}
 		
 		struct par_struct{
 			double Muf;

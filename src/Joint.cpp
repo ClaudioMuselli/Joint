@@ -104,8 +104,10 @@ std::complex<long double> Joint::Sudakov_g(std::complex<long double> N, std::com
     long double r=std::abs(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
     long double theta=std::arg(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
     gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
-    std::complex<long double> risdilog(redilog.val,imdilog.val);
-    //std::complex<long double> risdilog(0.,0);
+    std::complex<long double> risdilog(0.,0);
+    if(_dilog==true){
+      risdilog=redilog.val+II*imdilog.val;
+    }
     Sud_g3_g=Apt1g*beta_1*beta_1/(2.*std::pow(beta_0,4))*((lchi+std::log(1.-lchi))/(std::pow(1.-lchi,2))*(lchi+(1.-2.*lchi)*std::log(1.-lchi)))
 					    +Apt1g*beta_2/std::pow(beta_0,3)*(((2.-3.*lchi)*lchi)/(2.*std::pow(1.-lchi,2))+std::log(1.-lchi))
 					    -Apt2g*beta_1/std::pow(beta_0,3)*(((2.-3.*lchi)*lchi)/(2.*std::pow(1.-lchi,2))+(1.-2.*lchi)*std::log(1.-lchi)/std::pow(1.-lchi,2))
@@ -263,7 +265,7 @@ void Joint::ComputeEvolution(std::complex<long double> N, std::complex<long doub
   return;
 }
 
-std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long double> N, std::complex<long double> lchi){
+std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long double> N, std::complex<long double> lchi, long double xp){
   /* channel legends
    * 0 all channels
    * 1 gg only
@@ -281,9 +283,14 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
   gsl_sf_result redilog,imdilog;
   long double r=std::abs(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
   long double theta=std::arg(std::exp((lN-lchi)/(ConstResum::as*beta_0)));
+  std::complex<long double> xx=std::exp((lN-lchi)/(ConstResum::as*beta_0));
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
-  std::complex<long double> risdilog(redilog.val,imdilog.val);
-  //std::complex<long double> risdilog(0.,0);
+  std::complex<long double> risdilog(0.,0);
+  _dilog=false;
+  if (xp > std::pow(6./ConstResum::Q,2.)){
+    _dilog=true;
+    risdilog=redilog.val+II*imdilog.val;
+  }
   //LL resummation
   switch(_ordres){
     case(0):{
@@ -355,7 +362,7 @@ std::vector<std::complex<long double> > Joint::ComputeJointRes(std::complex<long
   return ris; 
 }
 
-std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long double> N, std::complex<long double> b){
+std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long double> N, std::complex<long double> b, long double xp){
   /* channel legends
    * 0 all channels
    * 1 gg only
@@ -373,8 +380,12 @@ std::vector<std::complex<long double> > Joint::ComputeMatching(std::complex<long
   long double r=std::abs(std::exp(LN-LC));
   long double theta=std::arg(std::exp(LN-LC));
   gsl_sf_complex_dilog_e(r,theta,&redilog,&imdilog);
-  std::complex<long double> risdilog(redilog.val,imdilog.val);
-  //std::complex<long double> risdilog(0.,0);
+  std::complex<long double> risdilog(0.,0);
+  _dilog=false;
+  if (xp > std::pow(4./ConstResum::Q,2.)){
+    _dilog=true;
+    risdilog=redilog.val+II*imdilog.val;
+  }
   AP.ComputeGamma(N,1);
   
   std::vector<std::complex<long double> > match;

@@ -40,7 +40,7 @@ CombResum::CombResum(int ordres, int ordmatch, int channel, string PDFNAME, bool
   beta_1=((17.*_Ca*_Ca-5.*_Ca*_Nf-3.*_Cf*_Nf)*2./3.)/(16.*M_PIl*M_PIl);
   beta_2=((2857./54.*_Ca*_Ca*_Ca+(_Cf*_Cf-205./18.*_Cf*_Ca-1415./54.*_Ca*_Ca)*_Nf
   +(11./9.*_Cf+79./54.*_Ca)*_Nf*_Nf))/std::pow(4.*M_PIl,3);
-   ConstResum::as=alpha_s_muR(Mur);
+   ConstResum::as=_Lumi.get_alphaS(Mur);
   _ordres=ordres;_ordmatch=ordmatch;_channel=channel;_Wilson=Wilson;_Nc=Nc;_Nf=Nf;
   _Fix=new FixedptResum(ordres, ordmatch,channel, Wilson, Nc, Nf);
   _Joint=new Joint(ordres, ordmatch, channel, Wilson, Nc, Nf);
@@ -82,7 +82,7 @@ void CombResum::SetMUF(long double Muf){
 
 void CombResum::SetMUR(long double Mur){
   ConstResum::MUR=Mur;
-  ConstResum::as=alpha_s_muR(ConstResum::MUR);
+  ConstResum::as=_Lumi.get_alphaS(ConstResum::MUR);
   ConstResum::sigma0Higgs=std::sqrt(2.)*ConstResum::Gf*ConstResum::as*ConstResum::as/(576.*M_PIl);
 }
 
@@ -147,10 +147,15 @@ long double CombResum::ResummedCrossSection(long double CMS, long double xp, int
   FixptPart*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
   //Joint Part
   long double Joint=0.,errJoint=0.;
-  Borel::BorelJointCp(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
+  if (xp < std::pow(6./ConstResum::Q,2.)){
+    Borel::BorelJointC(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
+  }
+  else{
+    Borel::BorelJointCp(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0);//Quick and good convergence for  pt>4... C=1,2,3... no difference in this region
+  }
   Joint*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
   errJoint*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
-  cout << "Joint= " << Joint << " +- " << errJoint << endl;
+  //cout << "Joint= " << Joint << " +- " << errJoint << endl;
   _MatchFun=_MatchFun2;
   *err=errJoint+errFixptPart;
   return (FixptPart+Joint);
@@ -179,7 +184,12 @@ std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::v
     Fixptpar.CombR=this;
     FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar,&errFixptPart);
     long double Joint=0.,errJoint=0.;
-    Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
+    if (pt < std::pow(6./ConstResum::Q,2.)){
+      Borel::BorelJointC(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
+    }
+    else{
+      Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0);//Quick and good convergence for  pt>4... C=1,2,3... no difference in this region
+    }
     ris.push_back((FixptPart+Joint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     error.push_back((errFixptPart+errJoint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     i++;
@@ -213,7 +223,12 @@ std::vector<std::vector<long double>> CombResum::ResummedCrossSection(std::vecto
       FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar, &errFixptPart);
       //Joint Part
       long double Joint=0.,errJoint=0.;
-      Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,1.,3.,1.0);
+      if (pt < std::pow(6./ConstResum::Q,2.)){
+	Borel::BorelJointC(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
+      }
+      else{
+	Borel::BorelJointCp(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0);//Quick and good convergence for  pt>4... C=1,2,3... no difference in this region
+      }
       ris2.push_back((FixptPart+Joint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
       error2.push_back((errFixptPart+errJoint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     }
@@ -242,7 +257,7 @@ std::complex<long double> CombResum::FixptPartRes(std::complex<long double> N, l
 
 std::complex<long double> CombResum::JointPartRes(std::complex<long double> N, std::complex<long double> lchi, long double xp){
   std::vector<std::complex<long double>>Jointchannel,Lumi;std::complex<long double> zero(0.,0.);
-  Jointchannel=_Joint->ComputeJointRes(N,lchi);
+  Jointchannel=_Joint->ComputeJointRes(N,lchi,xp);
   Lumi=_Lumi.Higgs_Lum_N(N);
   return ((1.-_MatchFun(N,xp))*std::inner_product(Jointchannel.begin(),Jointchannel.end(),Lumi.begin(),zero));
 }
@@ -256,7 +271,7 @@ std::complex<long double> CombResum::FixptPartMatch(std::complex<long double> N,
 
 std::complex<long double> CombResum::JointPartMatch(std::complex<long double> N, std::complex<long double> b, long double xp){
   std::vector<std::complex<long double>>Jointchannel,Lumi;std::complex<long double> zero(0.,0.);
-  Jointchannel=_Joint->ComputeMatching(N,b);
+  Jointchannel=_Joint->ComputeMatching(N,b,xp);
   Lumi=_Lumi.Higgs_Lum_N(N);
   return ((1.-_MatchFun(N,xp))*std::inner_product(Jointchannel.begin(),Jointchannel.end(),Lumi.begin(),zero));
 }
