@@ -7,8 +7,8 @@ long double ConstResum::MUR=125.09;
 long double ConstResum::as=0.118;
 long double ConstResum::sigma0Higgs=1.;
 long double ConstResum::Q=125.09;
-long double ConstResum::Gf = 0.00001166364;// Fermi constant in GeV^-2
-long double ConstResum::GeVtopb = 389379304.;// GeV^-2 to pb conversion factor == (hc)^2 
+long double ConstResum::Gf = 0.0000116637;// Fermi constant in GeV^-2
+long double ConstResum::GeVtopb = 389379660.;// GeV^-2 to pb conversion factor == (hc)^2 
 
 std::complex<long double> Tmatch(std::complex<long double> N, long double xp){
   return (std::pow(N,3)*std::pow(xp,2)/(1.+std::pow(N,3)*std::pow(xp,2)));
@@ -40,7 +40,8 @@ CombResum::CombResum(int ordres, int ordmatch, int channel, string PDFNAME, bool
   beta_1=((17.*_Ca*_Ca-5.*_Ca*_Nf-3.*_Cf*_Nf)*2./3.)/(16.*M_PIl*M_PIl);
   beta_2=((2857./54.*_Ca*_Ca*_Ca+(_Cf*_Cf-205./18.*_Cf*_Ca-1415./54.*_Ca*_Ca)*_Nf
   +(11./9.*_Cf+79./54.*_Ca)*_Nf*_Nf))/std::pow(4.*M_PIl,3);
-   ConstResum::as=_Lumi.get_alphaS(Mur);
+  ConstResum::as=_Lumi.get_alphaS(Mur);
+  cout << "as = " << ConstResum::as << endl;
   _ordres=ordres;_ordmatch=ordmatch;_channel=channel;_Wilson=Wilson;_Nc=Nc;_Nf=Nf;
   _Fix=new FixedptResum(ordres, ordmatch,channel, Wilson, Nc, Nf);
   _Joint=new Joint(ordres, ordmatch, channel, Wilson, Nc, Nf);
@@ -147,7 +148,8 @@ long double CombResum::ResummedCrossSection(long double CMS, long double xp, int
   FixptPart*=tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
   //Joint Part
   long double Joint=0.,errJoint=0.;
-  if (xp < std::pow(6./ConstResum::Q,2.)){
+  if (xp < std::pow(3.5/ConstResum::Q,2.)){
+    cout << " low pt " << endl;
     Borel::BorelJointC(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
   }
   else{
@@ -175,7 +177,7 @@ std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::v
   std::vector<long double> ris,error;
   int i=0;
   for (auto pt : xp){
-    std::cout << i << " " ;
+    std::cout << i << endl ;
     //Fixed pt Part
     long double FixptPart=0., errFixptPart=0.;
     long double tauprime=std::pow(ConstResum::Q*(std::sqrt(1.+pt)+std::sqrt(pt))/CMS,2.);
@@ -184,7 +186,8 @@ std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::v
     Fixptpar.CombR=this;
     FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar,&errFixptPart);
     long double Joint=0.,errJoint=0.;
-    if (pt < std::pow(6./ConstResum::Q,2.)){
+    if (pt < std::pow(3.5/ConstResum::Q,2.)){
+      cout << " low pt " << endl;
       Borel::BorelJointC(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
     }
     else{
@@ -192,6 +195,7 @@ std::vector<long double> CombResum::ResummedCrossSection(long double CMS, std::v
     }
     ris.push_back((FixptPart+Joint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
     error.push_back((errFixptPart+errJoint)*tauprime*ConstResum::sigma0Higgs*ConstResum::GeVtopb);
+    
     i++;
   }
   _MatchFun=_MatchFun2;
@@ -223,7 +227,8 @@ std::vector<std::vector<long double>> CombResum::ResummedCrossSection(std::vecto
       FixptPart=integration::InverseMellin_path(3,ResCrossSecFixpt,tauprime,2.,1.5,&Fixptpar, &errFixptPart);
       //Joint Part
       long double Joint=0.,errJoint=0.;
-      if (pt < std::pow(6./ConstResum::Q,2.)){
+      if (pt < std::pow(3.5/ConstResum::Q,2.)){
+	cout << " low pt " << endl;
 	Borel::BorelJointC(3,tauprime,pt,ConstResum::as*beta_0,ResCrossSecJoint,&Fixptpar,&Joint,&errJoint,2.,3.,1.0); //Good convergence at small pt not at high pt
       }
       else{
@@ -277,5 +282,32 @@ std::complex<long double> CombResum::JointPartMatch(std::complex<long double> N,
 }
 
 
+//pt resummation Standard Borel Approach own implementation used for cross check
+
+std::complex<long double> ResCrossSecpt(std::complex<long double> N,std::complex<long double> lchi, void *p){
+  ptstruct par=*(ptstruct *)p;
+  return(par.CombR->ptPartRes(N,lchi,par.xp));
+}
+
+std::complex<long double> CombResum::ptPartRes(std::complex<long double> N, std::complex<long double> lchi, long double xp){
+  std::vector<std::complex<long double>>Jointchannel,Lumi;std::complex<long double> zero(0.,0.);
+  Jointchannel=_Joint->ComputeptRes(N,lchi,xp);
+  Lumi=_Lumi.Higgs_Lum_N(N);
+  return (std::inner_product(Jointchannel.begin(),Jointchannel.end(),Lumi.begin(),zero));
+}
+
+
+long double CombResum::ResummedCrossSectionpt(long double CMS, long double xp, long double *err){
+  long double ptRes=0.,errptRes=0.;
+  ptstruct Fixptpar;
+  Fixptpar.xp=xp;
+  Fixptpar.CombR=this;
+  long double tauprime=std::pow(ConstResum::Q*(std::sqrt(1.+xp)+std::sqrt(xp))/CMS,2.);
+  Borel::BorelJointpt(3,tauprime,xp,ConstResum::as*beta_0,ResCrossSecpt,&Fixptpar,&ptRes,&errptRes,2.,3.,1.0);
+  ptRes*=std::pow(ConstResum::Q/CMS,2)*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
+  errptRes*=std::pow(ConstResum::Q/CMS,2)*ConstResum::sigma0Higgs*ConstResum::GeVtopb;
+  *err=errptRes;
+  return (ptRes);
+}
 
 

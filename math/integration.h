@@ -34,7 +34,7 @@ namespace integration {
   extern double InverseMellin_path(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, long double slope, void *pp, long double *err);
   extern double InverseMellin_epsilon(int method, std::complex<long double> (Func) ( std::complex<long double> , void *), long double tau , long double N0, void *pp);
   
-  extern std::complex<long double> InverseBessel_path(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp);
+  extern std::complex<long double> InverseBessel_path(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, long double v, long double slope, void *pp, std::complex<long double> *err);
   extern std::complex<long double> InverseBessel_epsilon(int method, std::complex<long double> (Func) (std::complex<long double> , void *), long double xp, long double bc, void *pp);
 
   extern int InverseMellinBessel(int method, std::complex<long double> (Func)(std::complex<long double> , std::complex<long double>, void*),

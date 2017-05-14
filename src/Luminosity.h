@@ -22,7 +22,7 @@ class Luminosity {
 		typedef std::complex<long double> dcomplex;
 		typedef LHAPDF::PDF* PDF_ptr;
 	
-		Luminosity(PDF_ptr thePDF, double MUF, unsigned short NF = 5, std::size_t order=20);
+		Luminosity(PDF_ptr thePDF, double MUF, unsigned short NF = 5, std::size_t order=10);
 		Luminosity(const Luminosity& Lumi);
 		virtual ~Luminosity();
 		

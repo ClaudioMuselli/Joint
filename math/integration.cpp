@@ -442,7 +442,7 @@ int IB2(int* ndim, double *x, int* ncomp, double* y, void* p){
 }
 
 std::complex<long double> integration::InverseBessel_path(int method, std::complex<long double> (Func)(std::complex<long double> , void*),
-						     long double xp, long double bc, long double v, long double slope, void *pp){
+						     long double xp, long double bc, long double v, long double slope, void *pp, std::complex<long double> *err){
   double prec=1e-12;
   int fail; double *err1,*err2,*err3, *prob;
   InverBessel IBC;
@@ -463,7 +463,7 @@ std::complex<long double> integration::InverseBessel_path(int method, std::compl
   CUBA(method,IB2,2,2,prec,&ris2,&fail,&err2,&prob,&IBC);
   CUBA(method,IB3,2,2,prec,&ris3,&fail,&err3,&prob,&IBC);
   std::complex<long double> result;
-  std::cout << err1[0]+ err2[0]+err3[0]+II*(err1[1]+err2[1]+err3[1]) << std::endl;
+  *err=err1[0]+ err2[0]+err3[0]+II*(err1[1]+err2[1]+err3[1]);
   result=ris1[0]+ris2[0]+ris3[0]+II*(ris1[1]+ris2[1]+ris3[1]);
   return(result);  
 }

@@ -20,15 +20,15 @@ int main(){
   ss << "graph/PlotResumFinal_" << CMS/1000.;
   switch (orderres){
     case(0):{
-      ss <<"_LL.dat";
+      ss <<"_LL_tiny.dat";
       break;
     }
     case (1):{
-      ss << "_NLL.dat";
+      ss << "_NLL_tiny.dat";
       break;
     }
     case(2):{
-      ss << "_NNLL.dat" ;
+      ss << "_NNLL_tiny.dat" ;
       break;
     }
   }
@@ -44,8 +44,8 @@ int main(){
     xp.push_back(std::pow((ptstart+((long double) i)*rate)/mH,2));
   }
   ptstart=22.; ptend=250.;
-  rate=(ptend-ptstart)/( 80.);
-  for (int i=0;i<80;i++){
+  rate=(ptend-ptstart)/( 20.);
+  for (int i=0;i<20;i++){
     xp.push_back(std::pow((ptstart+((long double) i)*rate)/mH,2));
   }
   Joint=Com.ResummedCrossSection(CMS,xp,0,&errJoint);
@@ -53,11 +53,23 @@ int main(){
   Matched=Com.ResummedCrossSection(CMS,xp,2,&errMatched);
   for (int i=0;i<xp.size();i++){
     long double pt=  std::sqrt(xp[i]*mH*mH);
-    OUT << CMS << "\t" << pt << "\t" << Joint[i]*2.*pt/mH/mH << "\t" 
+    long double errstandpt=0.;
+    long double standpt=Com.ResummedCrossSectionpt(CMS,xp[i],&errstandpt);
+    //OUT << CMS << "\t" << pt << "\t" << Joint[i]*2.*pt/mH/mH << "\t" 
+    //<<errJoint[i]*2.*pt/mH/mH
+    //<< "\t" << Fix[i]*2.*pt/mH/mH << "\t" 
+    //<< errFix[i]*2.*pt/mH/mH << endl;
+    //OUT << CMS << "\t" << pt << "\t" << Joint[i]*2.*pt/mH/mH << "\t" 
+    //<<errJoint[i]*2.*pt/mH/mH
+    //<< "\t" <<<< Fix[i]*2.*pt/mH/mH << "\t" 
+    //<< errFix[i]*2.*pt/mH/mH << "\t" << Matched[i]*2.*pt/mH/mH
+     //<< "\t" << errMatched[i]*2.*pt/mH/mH << endl;
+     OUT << CMS << "\t" << pt << "\t" << Joint[i]*2.*pt/mH/mH << "\t" 
     <<errJoint[i]*2.*pt/mH/mH
     << "\t" << Fix[i]*2.*pt/mH/mH << "\t" 
     << errFix[i]*2.*pt/mH/mH << "\t" << Matched[i]*2.*pt/mH/mH
-     << "\t" << errMatched[i]*2.*pt/mH/mH << endl;
+     << "\t" << errMatched[i]*2.*pt/mH/mH 
+     << "\t" << standpt*2.*pt/mH/mH  << "\t"<< errstandpt*2.*pt/mH/mH  << endl;
   }
   OUT.close();
   return 0;

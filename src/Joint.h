@@ -27,6 +27,7 @@ class Joint{
     //Return a vector of three components in the case of Higgs which is flavour blind (gg,gq,qq)
     std::vector<std::complex<long double> > ComputeJointRes(std::complex<long double> N, std::complex<long double> lchi, long double xp);
     std::vector<std::complex<long double> > ComputeMatching(std::complex<long double> N, std::complex<long double> b, long double xp);
+    std::vector<std::complex<long double> > ComputeptRes(std::complex<long double> N, std::complex<long double> lchi, long double xp);
     
     void SetOrdRes(int ordres);
     void SetOrdMatch(int ordmatch);
@@ -43,7 +44,7 @@ class Joint{
     bool _Wilson;
     bool _dilog;
     
-    long double EulerGamma=0.577215664901532860606512090082;
+    long double EulerGamma=0.57721566;
     
     
     GammaAP AP;
@@ -75,11 +76,11 @@ class Joint{
     std::complex<long double> Hggqq2(std::complex<long double> NN);
     
      //Sudakov
-    std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> lchi);
+    std::complex<long double> Sudakov_g(std::complex<long double> N, std::complex<long double> lchi, int ord);
     
     //Evolution
     void ComputeEvolution(std::complex<long double> N, std::complex<long double> lchi);
-    
+    void ComputeEvolutionpt(std::complex<long double> N, std::complex<long double> lchi);
     
     long double Apt1q;
 };

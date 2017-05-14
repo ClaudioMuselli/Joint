@@ -61,6 +61,11 @@ using namespace ConstResum;
     std::complex<long double> JointPartMatch(std::complex<long double> N, std::complex<long double> b, long double xp);
     std::complex<long double> FixptPartMatch(std::complex<long double> N, long double xp);
     
+    //pt resummation
+    
+    long double  ResummedCrossSectionpt(long double CMS, long double xp, long double *err);
+    std::complex<long double> ptPartRes(std::complex<long double> N, std::complex<long double> b, long double xp);
+    
   private:
     Luminosity _Lumi;
     FixedptResum *_Fix;
@@ -75,7 +80,6 @@ using namespace ConstResum;
     int _channel;
     bool _Wilson;
     
-    long double tauprime;
     
     //Important constant
     
